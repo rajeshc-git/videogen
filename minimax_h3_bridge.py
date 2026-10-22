@@ -9,9 +9,10 @@ from PIL import Image
 
 COMFY_HOST = "127.0.0.1:8188"
 COMFY_URL = f"http://{COMFY_HOST}"
-TEMPLATE_PATH = r"C:\Users\ABI-AI\AppData\Local\Comfy-Desktop\ComfyUI-Installs\RAJESH\standalone-env\Lib\site-packages\comfyui_workflow_templates_json\templates\video_minimax_h3_i2v.json"
-SHARED_MODELS_PATH = r"C:\Users\ABI-AI\AppData\Local\Comfy-Desktop\ComfyUI-Shared\models"
-SHARED_OUTPUT_PATH = r"C:\Users\ABI-AI\AppData\Local\Comfy-Desktop\ComfyUI-Shared\output"
+USER_HOME = os.path.expanduser("~")
+DEFAULT_COMFY_SHARED = os.path.join(USER_HOME, "AppData", "Local", "Comfy-Desktop", "ComfyUI-Shared")
+SHARED_MODELS_PATH = os.environ.get("COMFY_MODELS_PATH", os.path.join(DEFAULT_COMFY_SHARED, "models"))
+SHARED_OUTPUT_PATH = os.environ.get("COMFY_OUTPUT_PATH", os.path.join(DEFAULT_COMFY_SHARED, "output"))
 
 REQUIRED_MODELS = [
     {
