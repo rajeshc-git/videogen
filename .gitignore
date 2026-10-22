@@ -1,6 +1,8 @@
-# Media directories (User uploads and generated outputs)
-uploads/
-outputs/
+# Media directories (User uploads and generated outputs - preserve folders via .gitkeep)
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
 
 # Python cache & virtual environments
 __pycache__/
