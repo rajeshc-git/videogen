@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>VideoGen Studio - MiniMax H3</title>
+  <meta name="description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with native stereo audio on NVIDIA RTX 5080.">
+
+  <!-- Google Fonts: Outfit, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS 3 via CDN configured for pure Monochrome Black & White -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              black: '#000000',
+              white: '#ffffff',
+            }
+          },
+          boxShadow: {
+            'card-light': '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+            'card-dark': '0 4px 25px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+            'btn-black': '0 4px 14px 0 rgba(0, 0, 0, 0.25)',
+            'btn-white': '0 4px 14px 0 rgba(255, 255, 255, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Vue.js 3 Production Runtime -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <style>
+    [v-cloak] { display: none !important; }
+    
+    .glass-clean {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+  </style>
+</head>
+<body class="h-full bg-neutral-50 text-neutral-900 dark:bg-black dark:text-neutral-100 transition-colors duration-200 antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+
+  <!-- Vue App Root Mount -->
+  <div id="app" v-cloak class="min-h-full flex flex-col relative overflow-x-hidden">
+
+    <!-- App Header Navbar (Pure Monochrome Black & White) -->
+    <header class="sticky top-0 z-50 glass-clean bg-white/90 dark:bg-neutral-950/90 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-8 h-16 flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold text-lg shadow-sm flex-shrink-0">
+          ⚡
+        </div>
+        <div>
+          <h1 class="font-display font-extrabold text-lg leading-tight tracking-tight text-black dark:text-white">
+            VideoGen<span class="hidden sm:inline"> Studio</span>
+          </h1>
+          <div class="text-xs font-mono font-medium text-neutral-500 dark:text-neutral-400">
+            MiniMax H3
+          </div>
+        </div>
+      </div>
+
+      <!-- Header Actions: Completion Alert Toggle + Theme Toggler -->
+      <div class="flex items-center gap-2">
+        <button 
+          type="button" 
+          @click="toggleNotificationPermission" 
+          class="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm"
+          :title="notificationsEnabled ? 'Completion alerts & ting chime active' : 'Click to enable completion alert & sound'">
+          <span>{{ notificationsEnabled ? '🔔' : '🔕' }}</span>
+          <span class="hidden sm:inline">{{ notificationsEnabled ? 'Alerts On' : 'Enable Alerts' }}</span>
+        </button>
+
+        <!-- Minimal 2-State Theme Toggler: Light / Dark -->
+        <div class="flex items-center bg-neutral-200/80 dark:bg-neutral-900 p-1 rounded-full border border-neutral-300 dark:border-neutral-800">
+          <button 
+            type="button" 
+            @click="setTheme('light')" 
+            :class="['px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all', themeChoice === 'light' ? 'bg-black text-white shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-black']"
+            title="Light Mode (Default)">
+            ☀️ <span>Light</span>
+          </button>
+          <button 
+            type="button" 
+            @click="setTheme('dark')" 
+            :class="['px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all', themeChoice === 'dark' ? 'bg-white text-black shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-white']"
+            title="Dark Mode">
+            🌙 <span>Dark</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      
+      <!-- Video Output Modal / In-Page Ready Banner (Only shown when Video is Ready or Generating) -->
+      <section v-if="isGenerating || videoUrl" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark transition-all">
+        
+        <!-- Generating State -->
+        <div v-if="isGenerating" class="py-8 flex flex-col items-center justify-center text-center space-y-4">
+          <div class="relative w-20 h-20 flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full border-4 border-neutral-200 dark:border-neutral-800 border-t-black dark:border-t-white animate-spin"></div>
+            <span class="font-display font-extrabold text-xl text-black dark:text-white">{{ jobProgress }}%</span>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-lg text-black dark:text-white">Generating {{ selectedAspectRatio }} Video & Audio</h3>
+            <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ jobStepDetail }}</p>
+          </div>
+          <div class="w-full max-w-md bg-neutral-100 dark:bg-neutral-900 rounded-full h-2 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+            <div class="bg-black dark:bg-white h-full transition-all duration-300" :style="{ width: jobProgress + '%' }"></div>
+          </div>
+        </div>
+
+        <!-- Video Ready State (Play and Download) -->
+        <div v-else-if="videoUrl" class="space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+              <h3 class="font-display font-bold text-lg text-black dark:text-white">Your Video is Ready</h3>
+              <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 font-bold">
+                {{ selectedAspectRatio }}
+              </span>
+            </div>
+            <button type="button" @click="videoUrl = ''" class="text-xs font-semibold text-neutral-500 hover:text-black dark:hover:text-white">
+              ✕ Close Preview
+            </button>
+          </div>
+
+          <!-- Adaptive Video Player -->
+          <div class="flex justify-center bg-black rounded-2xl overflow-hidden shadow-lg p-1">
+            <video 
+              :src="videoUrl" 
+              controls 
+              autoplay 
+              loop 
+              playsinline 
+              :class="[
+                'rounded-xl object-contain bg-black max-h-[550px] w-auto',
+                selectedAspectRatio === '9:16' ? 'max-w-[320px]' : 
+                selectedAspectRatio === '16:9' ? 'w-full max-w-2xl aspect-video' : 
+                'w-[380px] aspect-square'
+              ]">
+            </video>
+          </div>
+
+          <!-- Action Buttons: Download & New Generation -->
+          <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            <!-- Dedicated Attachment Download for Any Device across LAN -->
+            <a 
+              :href="'/api/download/' + downloadFilename" 
+              :download="downloadFilename"
+              class="flex-1 w-full py-4 px-6 rounded-2xl bg-black text-white dark:bg-white dark:text-black font-display font-bold text-base flex items-center justify-center gap-2.5 shadow-btn-black dark:shadow-btn-white hover:opacity-90 active:scale-[0.99] transition-all">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download Video (MP4 + Audio)</span>
+            </a>
+
+            <button 
+              type="button" 
+              @click="resetFormForNew" 
+              class="w-full sm:w-auto py-4 px-6 rounded-2xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-display font-bold text-sm border border-neutral-200 dark:border-neutral-800 transition-all">
+              Create Another Video
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Main Creation Studio (Card 1: Upload & Aspect Ratio) -->
+      <section class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark space-y-6">
+        
+        <!-- Step 1: Upload Source Image -->
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">1</span>
+            <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Upload Image</h2>
+          </div>
+
+          <!-- Dropzone -->
+          <div 
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="onDrop"
+            @click="triggerFileInput"
+            :class="[
+              'relative min-h-[180px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center p-6 cursor-pointer overflow-hidden transition-all duration-200',
+              isDragging ? 'border-black dark:border-white bg-neutral-100 dark:bg-neutral-900' : 'border-neutral-300 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 hover:border-black dark:hover:border-white'
+            ]">
+            
+            <input type="file" ref="fileInput" @change="onFileSelected" accept="image/*" class="hidden" />
+
+            <!-- Idle Dropzone -->
+            <div v-if="!imagePreviewUrl" class="space-y-3 pointer-events-none">
+              <div class="w-12 h-12 rounded-full bg-neutral-200/80 dark:bg-neutral-800 text-black dark:text-white flex items-center justify-center mx-auto shadow-sm">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+              </div>
+              <div>
+                <p class="font-display font-bold text-black dark:text-white text-sm sm:text-base">Tap or drag image here</p>
+                <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">PNG, JPG, WEBP • Full original image used (no cropping)</p>
+              </div>
+            </div>
+
+            <!-- Image Loaded State -->
+            <div v-else class="relative w-full flex flex-col items-center">
+              <img :src="imagePreviewUrl" alt="Source Preview" class="max-h-60 rounded-xl object-contain shadow-md" />
+              <div class="absolute top-2 right-2 flex items-center gap-2">
+                <span class="bg-black text-white dark:bg-white dark:text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-md">✓ Ready</span>
+                <button type="button" @click.stop="triggerFileInput" class="bg-black/75 hover:bg-black text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/20">Change</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aspect Ratio -->
+        <div class="pt-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">
+            Aspect Ratio
+          </label>
+          
+          <div class="grid grid-cols-3 gap-3">
+            <!-- 9:16 Vertical Card -->
+            <button 
+              type="button" 
+              @click="selectedAspectRatio = '9:16'"
+              :class="[
+                'p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-200 relative',
+                selectedAspectRatio === '9:16' 
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+              ]">
+              <div class="w-6 h-10 border-2 rounded-md" :class="selectedAspectRatio === '9:16' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div>
+                <strong class="block text-xs text-black dark:text-white">9:16 Vertical</strong>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">768 × 1344</span>
+              </div>
+              <span v-if="selectedAspectRatio === '9:16'" class="absolute top-2 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+            </button>
+
+            <!-- 16:9 Landscape Card -->
+            <button 
+              type="button" 
+              @click="selectedAspectRatio = '16:9'"
+              :class="[
+                'p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-200 relative',
+                selectedAspectRatio === '16:9' 
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+              ]">
+              <div class="w-10 h-6 border-2 rounded-md" :class="selectedAspectRatio === '16:9' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div>
+                <strong class="block text-xs text-black dark:text-white">16:9 Landscape</strong>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">1344 × 768</span>
+              </div>
+              <span v-if="selectedAspectRatio === '16:9'" class="absolute top-2 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+            </button>
+
+            <!-- 1:1 Square Card -->
+            <button 
+              type="button" 
+              @click="selectedAspectRatio = '1:1'"
+              :class="[
+                'p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-200 relative',
+                selectedAspectRatio === '1:1' 
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+              ]">
+              <div class="w-7 h-7 border-2 rounded-md" :class="selectedAspectRatio === '1:1' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div>
+                <strong class="block text-xs text-black dark:text-white">1:1 Square</strong>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">960 × 960</span>
+              </div>
+              <span v-if="selectedAspectRatio === '1:1'" class="absolute top-2 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Prompt & Separate Sound Presets Popover -->
+        <div class="space-y-4 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">2</span>
+              <div>
+                <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Prompt</h2>
+                <p class="text-xs text-neutral-500 dark:text-neutral-400">Describe the video & audio</p>
+              </div>
+            </div>
+
+            <!-- Separate Sound Button -->
+            <button 
+              type="button" 
+              @click="soundModalOpen = !soundModalOpen" 
+              class="text-xs font-bold px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 flex items-center gap-1.5 transition-all shadow-sm">
+              <span>🎵 Sound</span>
+              <span class="text-[10px]">{{ soundModalOpen ? '▲' : '▼' }}</span>
+            </button>
+          </div>
+
+          <!-- Sound Presets Drawer (Separate, Unobtrusive) -->
+          <div v-if="soundModalOpen" class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 space-y-3">
+            <div class="flex items-center justify-between text-xs font-bold text-black dark:text-white">
+              <span>Select a preset to insert into prompt:</span>
+              <button type="button" @click="soundModalOpen = false" class="text-neutral-400 hover:text-black dark:hover:text-white">✕</button>
+            </div>
+
+            <!-- Dialogue & Timestamps -->
+            <div>
+              <span class="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">⏱️ Timed Dialogue & Multi-Scene</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button 
+                  v-for="(vibeText, vibeKey) in dialoguePresets" 
+                  :key="vibeKey"
+                  type="button" 
+                  @click="appendSoundVibe(vibeText)"
+                  class="text-xs font-semibold px-3 py-2 rounded-xl text-left bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white hover:border-black dark:hover:border-white transition-all shadow-sm">
+                  {{ vibeKey }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Background Music & Atmosphere -->
+            <div>
+              <span class="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">🎵 Atmosphere & Instrumental Music</span>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <button 
+                  v-for="(vibeText, vibeKey) in musicPresets" 
+                  :key="vibeKey"
+                  type="button" 
+                  @click="appendSoundVibe(vibeText)"
+                  class="text-xs font-semibold px-3 py-2 rounded-xl text-left bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white hover:border-black dark:hover:border-white transition-all shadow-sm">
+                  {{ vibeKey }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blank Prompt Textarea (Gemini Style - mixed video & audio prompt) -->
+          <div class="relative">
+            <textarea 
+              v-model="promptText" 
+              rows="4" 
+              placeholder="Describe your video & audio, or ask ChatGPT to give you and paste here..."
+              class="w-full rounded-2xl p-4 bg-neutral-50 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all resize-y placeholder:text-neutral-400">
+            </textarea>
+          </div>
+
+          <!-- Duration & Clear Controls (All Native Supported Durations, Pure Seconds, No Brackets) -->
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">Duration:</label>
+              <select v-model="durationSec" class="rounded-xl px-3 py-1.5 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer">
+                <option value="5">5 Seconds</option>
+                <option value="8">8 Seconds</option>
+                <option value="10">10 Seconds</option>
+                <option value="15">15 Seconds</option>
+              </select>
+            </div>
+
+            <button 
+              v-if="promptText.trim()" 
+              type="button" 
+              @click="promptText = ''" 
+              class="text-xs font-medium text-neutral-400 hover:text-black dark:hover:text-white">
+              Clear Text
+            </button>
+          </div>
+
+          <!-- Hero Black & White Generate Button -->
+          <button 
+            type="button" 
+            @click="startGeneration" 
+            :disabled="!selectedImageFile || isGenerating"
+            :class="[
+              'w-full py-4 rounded-2xl font-display font-extrabold text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all duration-200',
+              (!selectedImageFile || isGenerating) 
+                ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
+                : 'bg-black text-white dark:bg-white dark:text-black shadow-btn-black dark:shadow-btn-white hover:opacity-90 active:scale-[0.99]'
+            ]">
+            <span class="text-xl">⚡</span>
+            <span>{{ isGenerating ? 'Generating Video & Audio...' : 'Generate ' + selectedAspectRatio + ' Video' }}</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- Recent Activity (All Generations with Play, Download, Trash Delete & Clear All Button) -->
+      <section v-if="historyList.length > 0" class="rounded-3xl p-6 sm:p-7 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark transition-all">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-200 dark:border-neutral-800">
+          <div class="flex items-center gap-2.5">
+            <h3 class="font-display font-bold text-base text-black dark:text-white">Recent Activity</h3>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
+              {{ historyList.length }}
+            </span>
+          </div>
+          <button 
+            type="button" 
+            @click="confirmClearAll" 
+            title="Clear all generated videos and delete from ComfyUI list"
+            class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/60 active:scale-95 transition-all shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>Clear All</span>
+          </button>
+        </div>
+
+        <!-- Scrollable List of All Recent Generations -->
+        <div class="max-h-[480px] overflow-y-auto space-y-2.5 pr-1 -mr-1">
+          <div 
+            v-for="(item, index) in historyList" 
+            :key="item.filename"
+            class="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150">
+            
+            <!-- Video Info & Meta -->
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="w-9 h-9 rounded-xl bg-neutral-200/80 dark:bg-neutral-800 flex items-center justify-center flex-shrink-0 text-base shadow-sm">
+                🎬
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-mono font-bold truncate text-black dark:text-white" :title="item.filename">
+                    {{ item.filename }}
+                  </span>
+                  <span v-if="item.duration" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-semibold flex-shrink-0">
+                    {{ item.duration }}s
+                  </span>
+                </div>
+                <p v-if="item.prompt" class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5" :title="item.prompt">
+                  {{ item.prompt }}
+                </p>
+                <div class="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono flex items-center gap-2 mt-0.5">
+                  <span>{{ item.size_mb }} MB</span>
+                  <span>•</span>
+                  <span>{{ item.date }}</span>
+                  <span v-if="item.prompt_id" class="text-[9px] px-1 py-0.2 rounded bg-neutral-200/60 dark:bg-neutral-800/60 text-neutral-500" title="ComfyUI Prompt ID">
+                    ComfyUI
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons: Play, Save, Delete Trash Icon -->
+            <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+              <button 
+                type="button" 
+                @click="playHistoryVideo(item)" 
+                title="Play Video"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-black dark:text-white transition-all flex items-center gap-1 shadow-sm">
+                <span>▶</span>
+                <span>Play</span>
+              </button>
+
+              <a 
+                :href="'/api/download/' + item.filename" 
+                :download="item.filename" 
+                title="Download MP4"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-all flex items-center gap-1 shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Save</span>
+              </a>
+
+              <!-- Delete Trash Icon (Deletes from VideoGen & ComfyUI Queue/List) -->
+              <button 
+                type="button" 
+                @click="deleteHistoryItem(item)" 
+                title="Delete this video and remove from ComfyUI list"
+                class="p-2 rounded-xl text-xs font-bold text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-transparent hover:border-red-200 dark:hover:border-red-900 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Vue 3 Application Script -->
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        // Theme State: 'light' by default
+        const themeChoice = ref(localStorage.getItem('videogen_theme') || 'light');
+        
+        function setTheme(t) {
+          themeChoice.value = t;
+          localStorage.setItem('videogen_theme', t);
+          applyThemeClass();
+        }
+
+        function applyThemeClass() {
+          if (themeChoice.value === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+
+        // System & ComfyUI Status
+        const comfyOnline = ref(false);
+        const modelsList = ref([]);
+        const modelsDrawerOpen = ref(false);
+        const historyList = ref([]);
+
+        const readyModelsCount = computed(() => modelsList.value.filter(m => m.exists).length);
+        const totalModelsCount = computed(() => modelsList.value.length);
+        const allModelsReady = computed(() => totalModelsCount.value > 0 && readyModelsCount.value === totalModelsCount.value);
+
+        // Aspect Ratio Selection (Gemini Style)
+        const selectedAspectRatio = ref('9:16');
+        const currentResolutionText = computed(() => {
+          if (selectedAspectRatio.value === '16:9') return '1344 × 768';
+          if (selectedAspectRatio.value === '1:1') return '960 × 960';
+          return '768 × 1344';
+        });
+
+        // Studio State: EMPTY textarea by default
+        const selectedImageFile = ref(null);
+        const imagePreviewUrl = ref('');
+        const isDragging = ref(false);
+        const fileInput = ref(null);
+        const promptText = ref('');
+        const durationSec = ref('5');
+        const soundModalOpen = ref(false);
+
+        const dialoguePresets = {
+          '⏱️ Hindi Dialogue [0s-5s]': '[0s-2s] Camera focuses smoothly on the character with natural ambient sound.\n[2s-5s] Character speaks in Hindi: "नमस्ते, आपका यहाँ स्वागत है।", natural voice, studio clarity.',
+          '⏱️ Bengali Dialogue [0s-5s]': '[0s-2s] Camera slowly tracks the subject with subtle room ambiance.\n[2s-5s] Character speaks in Bengali: "নমস্কার, আপনি কেমন আছেন?", natural voice, studio clarity.',
+          '⏱️ English Dialogue [0s-5s]': '[0s-2s] Establishing scene with gentle atmospheric room tone.\n[2s-5s] Character speaks in English: "Welcome, let\'s create something incredible.", clear studio vocal tone.',
+          '⏱️ Hindi Multi-Scene [0s-8s]': '[0s-2s] Establishing shot, street ambient sound.\n[2s-5s] Character speaks in Hindi: "यह सिर्फ शुरुआत है, आगे देखिए क्या होता है।", confident voice.\n[5s-8s] Soft cinematic music swells as camera smoothly pans away.',
+          '⏱️ English Multi-Scene [0s-8s]': '[0s-2s] Cinematic opening shot with ambient environmental sound.\n[2s-5s] Character speaks in English: "The journey is just beginning, hold on.", clear voice.\n[5s-8s] Cinematic orchestral strings swell as scene transitions.'
+        };
+
+        const musicPresets = {
+          '🔇 Silent Ambient': 'Natural quiet atmospheric room tone, completely silent, no music, no speech, no vocals.',
+          '🎬 Cinematic Orchestra': 'Instrumental dramatic orchestral strings swell, low sub-bass impact, atmospheric room tone, no speech, no vocals.',
+          '⚡ Cyberpunk Synth': 'Instrumental driving retro synthesizer arpeggio, punchy electronic beat, futuristic riser, no speech, no vocals.',
+          '🌿 Nature & Breeze': 'Soothing ocean waves, gentle wind breeze, soft atmospheric birdsong, no speech, no vocals.',
+          '☕ Lo-Fi Warm Piano': 'Instrumental warm electric piano chords, relaxing lo-fi vinyl warmth, soft bassline, no speech, no vocals.',
+          '🔥 Action Impact': 'Heavy cinematic trailer braam, aggressive rising percussion, high tension riser, no speech, no vocals.'
+        };
+
+        // Generation Job State
+        const isGenerating = ref(false);
+        const currentJobId = ref(null);
+        const jobProgress = ref(0);
+        const jobStepDetail = ref('Initializing...');
+        const videoUrl = ref('');
+        const downloadFilename = ref('');
+        let pollTimer = null;
+
+        // Image Handling
+        function triggerFileInput() {
+          if (fileInput.value) fileInput.value.click();
+        }
+
+        function onFileSelected(e) {
+          const file = e.target.files && e.target.files[0];
+          if (file) handleImageFile(file);
+        }
+
+        function onDrop(e) {
+          isDragging.value = false;
+          const file = e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) handleImageFile(file);
+        }
+
+        function handleImageFile(file) {
+          if (!file.type.startsWith('image/')) {
+            alert('Please select an image file (PNG, JPG, WEBP).');
+            return;
+          }
+          selectedImageFile.value = file;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            imagePreviewUrl.value = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+
+        function appendSoundVibe(snippet) {
+          if (!promptText.value.trim()) {
+            promptText.value = snippet.trim();
+          } else {
+            promptText.value = promptText.value.trim() + '\n\n' + snippet.trim();
+          }
+          soundModalOpen.value = false;
+        }
+
+        function resetFormForNew() {
+          videoUrl.value = '';
+          selectedImageFile.value = null;
+          imagePreviewUrl.value = '';
+          promptText.value = '';
+          fetchHistory();
+        }
+
+        // API Status: runs strictly once on page mount (ZERO background polling)
+        async function fetchSystemStatus() {
+          try {
+            const res = await fetch('/api/status');
+            if (!res.ok) return;
+            const data = await res.json();
+            comfyOnline.value = data.comfy && data.comfy.online;
+            if (data.models) {
+              modelsList.value = data.models.models || [];
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        async function fetchHistory() {
+          try {
+            const res = await fetch('/api/history');
+            if (!res.ok) return;
+            historyList.value = await res.json();
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        // Web Audio & Completion Notification (Fully optimized for Desktop, Android & iPhone Safari)
+        let audioCtx = null;
+        let chimeAudio = null;
+        const savedAlertPref = localStorage.getItem('videogen_alerts');
+        const notificationsEnabled = ref(savedAlertPref !== null ? (savedAlertPref === 'true') : true);
+
+        // Pre-generate an in-memory WAV chime for HTML5 audio fallback (reliable across all iOS Safari versions)
+        function getChimeAudio() {
+          if (!chimeAudio) {
+            try {
+              const sampleRate = 22050;
+              const duration = 1.0;
+              const numSamples = Math.floor(sampleRate * duration);
+              const buffer = new ArrayBuffer(44 + numSamples * 2);
+              const view = new DataView(buffer);
+              function writeString(offset, str) {
+                for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+              }
+              writeString(0, 'RIFF');
+              view.setUint32(4, 36 + numSamples * 2, true);
+              writeString(8, 'WAVE');
+              writeString(12, 'fmt ');
+              view.setUint32(16, 16, true);
+              view.setUint16(20, 1, true);
+              view.setUint16(22, 1, true);
+              view.setUint32(24, sampleRate, true);
+              view.setUint32(28, sampleRate * 2, true);
+              view.setUint16(32, 2, true);
+              view.setUint16(34, 16, true);
+              writeString(36, 'data');
+              view.setUint32(40, numSamples * 2, true);
+              for (let i = 0; i < numSamples; i++) {
+                const t = i / sampleRate;
+                const decay = Math.exp(-4.5 * t);
+                const sample = decay * (0.6 * Math.sin(2 * Math.PI * 2093 * t) + 0.4 * Math.sin(2 * Math.PI * 1046.5 * t));
+                view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 0x7fff, true);
+              }
+              const blob = new Blob([buffer], { type: 'audio/wav' });
+              chimeAudio = new Audio(URL.createObjectURL(blob));
+            } catch (e) {
+              console.warn('Fallback audio create error:', e);
+            }
+          }
+          return chimeAudio;
+        }
+
+        function initAudioContext() {
+          try {
+            if (!audioCtx) {
+              const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+              if (AudioContextClass) {
+                audioCtx = new AudioContextClass();
+              }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+              audioCtx.resume();
+            }
+            // Prime HTML5 Audio fallback during user tap
+            const a = getChimeAudio();
+            if (a) {
+              a.load();
+            }
+          } catch (e) {
+            console.warn('AudioContext init error:', e);
+          }
+        }
+
+        function playTingSound() {
+          try {
+            initAudioContext();
+
+            // 1. Web Audio API synthesis
+            if (audioCtx) {
+              const now = audioCtx.currentTime;
+
+              // Bell chime (C7 - 2093 Hz)
+              const osc1 = audioCtx.createOscillator();
+              const gain1 = audioCtx.createGain();
+              osc1.type = 'sine';
+              osc1.frequency.setValueAtTime(2093, now);
+              gain1.gain.setValueAtTime(0.35, now);
+              gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+              osc1.connect(gain1);
+              gain1.connect(audioCtx.destination);
+              osc1.start(now);
+              osc1.stop(now + 1.2);
+
+              // Fundamental chime (C6 - 1046.5 Hz)
+              const osc2 = audioCtx.createOscillator();
+              const gain2 = audioCtx.createGain();
+              osc2.type = 'sine';
+              osc2.frequency.setValueAtTime(1046.5, now);
+              gain2.gain.setValueAtTime(0.25, now);
+              gain2.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+              osc2.connect(gain2);
+              gain2.connect(audioCtx.destination);
+              osc2.start(now);
+              osc2.stop(now + 1.5);
+            }
+
+            // 2. HTML5 Audio element fallback (works across iPhone Safari)
+            const a = getChimeAudio();
+            if (a) {
+              a.currentTime = 0;
+              a.play().catch(() => {});
+            }
+
+            // 3. Mobile haptic vibration if supported
+            if (navigator.vibrate) {
+              navigator.vibrate([150, 75, 150]);
+            }
+          } catch (e) {
+            console.warn('Ting sound error:', e);
+          }
+        }
+
+        function requestNotificationPermission() {
+          if ('Notification' in window) {
+            if (Notification.permission === 'default') {
+              Notification.requestPermission().catch(() => {});
+            }
+          }
+        }
+
+        function toggleNotificationPermission() {
+          initAudioContext();
+          notificationsEnabled.value = !notificationsEnabled.value;
+          localStorage.setItem('videogen_alerts', notificationsEnabled.value ? 'true' : 'false');
+
+          if (notificationsEnabled.value) {
+            playTingSound(); // Play test chime immediately so user can verify sound
+
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            if ('Notification' in window) {
+              if (Notification.permission !== 'granted') {
+                Notification.requestPermission().catch(() => {});
+              }
+            } else if (isIOS) {
+              alert("🔔 Alert Sound Enabled!\n\n• The chime will play when your video is ready.\n• Note for iPhone: Make sure the physical Silent/Mute switch on your iPhone is NOT in Silent mode (must be Ring mode).\n• To get banner notifications on your Lock Screen, tap Safari's Share button (⎋) and tap 'Add to Home Screen'.");
+            }
+          }
+        }
+
+        function triggerCompletionNotification() {
+          // 1. Play crystal clear ting chime
+          playTingSound();
+
+          // 2. Alert user via browser tab title change
+          document.title = '🎬 Video Ready! - VideoGen Studio';
+
+          // 3. Native browser & OS notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              const notif = new Notification('Video Generation Ready! 🎬', {
+                body: 'Your MiniMax H3 video & audio has finished generating.',
+                icon: '/favicon.ico',
+                tag: 'videogen-complete'
+              });
+              notif.onclick = () => {
+                window.focus();
+                notif.close();
+              };
+            } catch (e) {
+              console.warn('Notification display error:', e);
+            }
+          }
+        }
+
+        // Generation
+        async function startGeneration() {
+          if (!selectedImageFile.value) {
+            alert('Please upload an image first.');
+            return;
+          }
+
+          // Prime Web Audio & prompt notification permission on user gesture (required for iPhone Safari)
+          initAudioContext();
+          requestNotificationPermission();
+
+          isGenerating.value = true;
+          videoUrl.value = '';
+          jobProgress.value = 5;
+          jobStepDetail.value = `Formatting ${selectedAspectRatio.value} canvas & submitting...`;
+
+          // Scroll smoothly to top to show progress
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+          const fd = new FormData();
+          fd.append('image', selectedImageFile.value);
+          fd.append('prompt', promptText.value.trim());
+          fd.append('duration', durationSec.value);
+          fd.append('aspect_ratio', selectedAspectRatio.value);
+          fd.append('mode', allModelsReady.value ? 'auto' : 'demo');
+
+          try {
+            const res = await fetch('/api/generate', { method: 'POST', body: fd });
+            const d = await res.json();
+            currentJobId.value = d.job_id;
+
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(pollJob, 500);
+          } catch (e) {
+            alert('Generation error: ' + e.message);
+            isGenerating.value = false;
+          }
+        }
+
+        async function pollJob() {
+          if (!currentJobId.value) return;
+          try {
+            const res = await fetch('/api/progress/' + currentJobId.value);
+            if (!res.ok) return;
+            const job = await res.json();
+
+            jobProgress.value = job.progress || 0;
+            jobStepDetail.value = job.step || 'Processing...';
+
+            if (job.status === 'completed') {
+              clearInterval(pollTimer);
+              isGenerating.value = false;
+              videoUrl.value = job.video_url;
+              downloadFilename.value = job.filename || `MiniMaxH3_${selectedAspectRatio.value.replace(':', '_')}.mp4`;
+              fetchHistory();
+              // Trigger notification & ting sound chime
+              triggerCompletionNotification();
+            } else if (job.status === 'failed') {
+              clearInterval(pollTimer);
+              isGenerating.value = false;
+              alert('Generation error: ' + (job.error || 'Unknown error'));
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        function playHistoryVideo(item) {
+          videoUrl.value = item.url;
+          downloadFilename.value = item.filename;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteHistoryItem(item) {
+          if (!confirm(`Delete "${item.filename}"?\n\nThis will permanently delete this video and remove it from the ComfyUI list.`)) {
+            return;
+          }
+          try {
+            const res = await fetch('/api/history/delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: item.filename, prompt_id: item.prompt_id })
+            });
+            if (res.ok) {
+              historyList.value = historyList.value.filter(h => h.filename !== item.filename);
+              if (videoUrl.value && videoUrl.value.includes(item.filename)) {
+                videoUrl.value = '';
+              }
+            } else {
+              const err = await res.json();
+              alert('Delete failed: ' + (err.detail || err.error || 'Server error'));
+            }
+          } catch (e) {
+            alert('Delete error: ' + e.message);
+          }
+        }
+
+        async function confirmClearAll() {
+          if (!confirm('Clear All recent videos?\n\nThis will delete all generated videos from disk and clear the ComfyUI list and queue.')) {
+            return;
+          }
+          await clearHistory();
+        }
+
+        async function clearHistory() {
+          try {
+            const res = await fetch('/api/history/clear', { method: 'POST' });
+            if (res.ok) {
+              historyList.value = [];
+              videoUrl.value = '';
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        onMounted(async () => {
+          applyThemeClass();
+          await fetchSystemStatus(); // Checks strictly once on page load (ZERO periodic background calls)
+          fetchHistory();
+
+          if ('Notification' in window && Notification.permission === 'granted' && savedAlertPref === null) {
+            notificationsEnabled.value = true;
+          }
+
+          window.addEventListener('focus', () => {
+            document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
+          });
+        });
+
+        return {
+          themeChoice,
+          setTheme,
+          comfyOnline,
+          modelsList,
+          modelsDrawerOpen,
+          readyModelsCount,
+          totalModelsCount,
+          allModelsReady,
+          selectedAspectRatio,
+          currentResolutionText,
+          fileInput,
+          triggerFileInput,
+          onFileSelected,
+          onDrop,
+          isDragging,
+          imagePreviewUrl,
+          selectedImageFile,
+          promptText,
+          durationSec,
+          soundModalOpen,
+          dialoguePresets,
+          musicPresets,
+          appendSoundVibe,
+          resetFormForNew,
+          isGenerating,
+          jobProgress,
+          jobStepDetail,
+          videoUrl,
+          downloadFilename,
+          notificationsEnabled,
+          toggleNotificationPermission,
+          historyList,
+          playHistoryVideo,
+          deleteHistoryItem,
+          confirmClearAll,
+          clearHistory,
+          startGeneration
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
