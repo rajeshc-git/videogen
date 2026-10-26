@@ -108,25 +108,82 @@ def check_comfy_online():
         pass
     return {"online": False, "device": None, "version": None}
 
-def prepare_9_16_image(input_image_path: str, output_path: str, target_width: int = 768, target_height: int = 1344) -> str:
+def calculate_optimal_dimensions(src_w: int, src_h: int, target_aspect_ratio: str = "original") -> tuple[int, int]:
     """
-    Prepares the user's uploaded image WITHOUT ANY CROPPING.
-    Preserves 100% of the original image content. Snaps dimensions to multiples of 32
-    as required by the MiniMax H3 VAE encoder.
+    Calculates optimal (width, height) for MiniMax H3:
+    1. Dimensions must be multiples of 32 (MiniMax VAE requirement).
+    2. Total pixel budget is kept around ~1,032,192 pixels (e.g. 768 x 1344).
+    3. If target_aspect_ratio is 'original' (or 'auto'), preserves the exact aspect
+       ratio of the source image with ZERO distortion and ZERO cropping.
+    """
+    import math
+    target_area = 1032192  # 768 * 1344 standard MiniMax H3 latent pixel area
+
+    if not target_aspect_ratio or target_aspect_ratio.lower() in ("original", "auto", "native"):
+        # Match source image aspect ratio
+        r = src_w / max(1, src_h)
+        w = math.sqrt(target_area * r)
+        h = math.sqrt(target_area / r)
+        # Snap to nearest multiple of 32 within safe tested diffusion bounds (384 to 1536)
+        w = max(384, min(1536, int(round(w / 32) * 32)))
+        h = max(384, min(1536, int(round(h / 32) * 32)))
+        return w, h
+
+    elif target_aspect_ratio == "16:9":
+        return 1344, 768
+    elif target_aspect_ratio == "1:1":
+        return 960, 960
+    else:  # "9:16" default
+        return 768, 1344
+
+def prepare_image_for_minimax(input_image_path: str, output_path: str, aspect_ratio: str = "original") -> tuple[str, int, int]:
+    """
+    Prepares the user's uploaded image for MiniMax H3:
+    - If aspect_ratio == 'original' (Gemini Option A):
+        Proportionally resizes to optimal diffusion resolution (multiples of 32).
+        Preserves 100% of the image with ZERO cropping and ZERO stretching.
+    - If a specific ratio is chosen (9:16, 16:9, 1:1):
+        Uses proportional center-cover crop to match the target frame cleanly
+        without squashing, stretching, or warping faces/objects.
     """
     im = Image.open(input_image_path).convert("RGB")
     src_w, src_h = im.size
 
-    # Snap to nearest multiple of 32 without cropping any pixels
-    w = max(64, round(src_w / 32) * 32)
-    h = max(64, round(src_h / 32) * 32)
+    target_w, target_h = calculate_optimal_dimensions(src_w, src_h, target_aspect_ratio=aspect_ratio)
 
-    if (w, h) != (src_w, src_h):
-        im = im.resize((w, h), Image.Resampling.LANCZOS)
+    if not aspect_ratio or aspect_ratio.lower() in ("original", "auto", "native"):
+        # Direct proportional resize matching native aspect ratio
+        im_resized = im.resize((target_w, target_h), Image.Resampling.LANCZOS)
+    else:
+        # Fixed aspect ratio: Proportional center-cover crop (NO STRETCHING)
+        src_aspect = src_w / src_h
+        target_aspect = target_w / target_h
+
+        if abs(src_aspect - target_aspect) < 0.02:
+            im_resized = im.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        elif src_aspect > target_aspect:
+            # Source is wider than target: fit height, crop width center
+            scale = target_h / src_h
+            new_w = int(round(src_w * scale))
+            im_scaled = im.resize((new_w, target_h), Image.Resampling.LANCZOS)
+            left = (new_w - target_w) // 2
+            im_resized = im_scaled.crop((left, 0, left + target_w, target_h))
+        else:
+            # Source is taller than target: fit width, crop height center
+            scale = target_w / src_w
+            new_h = int(round(src_h * scale))
+            im_scaled = im.resize((target_w, new_h), Image.Resampling.LANCZOS)
+            top = (new_h - target_h) // 2
+            im_resized = im_scaled.crop((0, top, target_w, top + target_h))
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
-    im.save(output_path, "PNG", quality=95)
-    return output_path
+    im_resized.save(output_path, "PNG", quality=95)
+    return output_path, target_w, target_h
+
+def prepare_9_16_image(input_image_path: str, output_path: str, target_width: int = 768, target_height: int = 1344) -> str:
+    """Backward-compatible wrapper for prepare_image_for_minimax."""
+    out_path, _, _ = prepare_image_for_minimax(input_image_path, output_path, aspect_ratio="original")
+    return out_path
 
 def upload_image_to_comfy(image_path: str) -> str:
     """Uploads an image to ComfyUI /upload/image endpoint."""

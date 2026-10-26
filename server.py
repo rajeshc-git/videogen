@@ -34,6 +34,7 @@ import websockets
 from minimax_h3_bridge import (
     check_models_status,
     check_comfy_online,
+    prepare_image_for_minimax,
     prepare_9_16_image,
     upload_image_to_comfy,
     build_minimax_h3_prompt,
@@ -144,7 +145,7 @@ async def generate_video(
     image: UploadFile = File(...),
     prompt: str = Form(""),
     duration: int = Form(5),
-    aspect_ratio: str = Form("9:16"),
+    aspect_ratio: str = Form("original"),
     mode: str = Form("auto")
 ):
     job_id = str(uuid.uuid4())[:8]
@@ -152,24 +153,20 @@ async def generate_video(
     with open(raw_img_path, "wb") as f:
         shutil.copyfileobj(image.file, f)
 
-    # Determine resolution based on aspect ratio
-    if aspect_ratio == "16:9":
-        target_w, target_h = 1344, 768
-    elif aspect_ratio == "1:1":
-        target_w, target_h = 960, 960
-    else: # 9:16 vertical default
-        target_w, target_h = 768, 1344
-
     formatted_img_path = os.path.join(UPLOADS_DIR, f"{job_id}_formatted.png")
-    prepare_9_16_image(raw_img_path, formatted_img_path, target_width=target_w, target_height=target_h)
+    # Option A (Gemini Style): Proportional preparation that completely eliminates stretching
+    _, target_w, target_h = prepare_image_for_minimax(raw_img_path, formatted_img_path, aspect_ratio=aspect_ratio)
+
+    aspect_desc = f"Original ({target_w}x{target_h})" if aspect_ratio in ("original", "auto", "native") else f"{aspect_ratio} ({target_w}x{target_h})"
 
     jobs[job_id] = {
         "id": job_id,
         "status": "queued",
         "progress": 0,
-        "step": f"Initializing {aspect_ratio} video pipeline...",
+        "step": f"Initializing {aspect_desc} video pipeline...",
         "prompt": prompt,
         "aspect_ratio": aspect_ratio,
+        "resolution": f"{target_w}x{target_h}",
         "video_url": None,
         "filename": None,
         "error": None,
@@ -177,7 +174,7 @@ async def generate_video(
     }
 
     background_tasks.add_task(run_generation_task, job_id, formatted_img_path, prompt, duration, aspect_ratio, target_w, target_h, mode)
-    return {"job_id": job_id, "status": "queued"}
+    return {"job_id": job_id, "status": "queued", "resolution": f"{target_w}x{target_h}"}
 
 async def run_generation_task(job_id: str, formatted_image_path: str, prompt: str, duration: int, aspect_ratio: str, target_w: int, target_h: int, mode: str):
     job = jobs[job_id]

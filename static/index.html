@@ -154,7 +154,8 @@
                 'rounded-xl object-contain bg-black max-h-[550px] w-auto',
                 selectedAspectRatio === '9:16' ? 'max-w-[320px]' : 
                 selectedAspectRatio === '16:9' ? 'w-full max-w-2xl aspect-video' : 
-                'w-[380px] aspect-square'
+                selectedAspectRatio === '1:1' ? 'w-[380px] aspect-square' :
+                'max-w-2xl w-auto'
               ]">
             </video>
           </div>
@@ -240,23 +241,43 @@
             Aspect Ratio
           </label>
           
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <!-- Original (Auto) Native Ratio Card - Gemini Style -->
+            <button 
+              type="button" 
+              @click="selectedAspectRatio = 'original'"
+              :class="[
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
+                selectedAspectRatio === 'original' 
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+              ]">
+              <div class="w-8 h-8 rounded-lg border-2 border-dashed flex items-center justify-center text-xs font-bold" :class="selectedAspectRatio === 'original' ? 'border-black dark:border-white bg-black text-white dark:bg-white dark:text-black' : 'border-neutral-400 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400'">
+                ⚡
+              </div>
+              <div>
+                <strong class="block text-xs text-black dark:text-white">Original (Auto)</strong>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">Native (No Stretch)</span>
+              </div>
+              <span v-if="selectedAspectRatio === 'original'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+            </button>
+
             <!-- 9:16 Vertical Card -->
             <button 
               type="button" 
               @click="selectedAspectRatio = '9:16'"
               :class="[
-                'p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-200 relative',
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
                 selectedAspectRatio === '9:16' 
                   ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
                   : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
               ]">
-              <div class="w-6 h-10 border-2 rounded-md" :class="selectedAspectRatio === '9:16' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-5 h-8 border-2 rounded-md" :class="selectedAspectRatio === '9:16' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">9:16 Vertical</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">768 × 1344</span>
               </div>
-              <span v-if="selectedAspectRatio === '9:16'" class="absolute top-2 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="selectedAspectRatio === '9:16'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
             </button>
 
             <!-- 16:9 Landscape Card -->
@@ -264,17 +285,17 @@
               type="button" 
               @click="selectedAspectRatio = '16:9'"
               :class="[
-                'p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-200 relative',
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
                 selectedAspectRatio === '16:9' 
                   ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
                   : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
               ]">
-              <div class="w-10 h-6 border-2 rounded-md" :class="selectedAspectRatio === '16:9' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-8 h-5 border-2 rounded-md" :class="selectedAspectRatio === '16:9' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">16:9 Landscape</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">1344 × 768</span>
               </div>
-              <span v-if="selectedAspectRatio === '16:9'" class="absolute top-2 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="selectedAspectRatio === '16:9'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
             </button>
 
             <!-- 1:1 Square Card -->
@@ -282,17 +303,17 @@
               type="button" 
               @click="selectedAspectRatio = '1:1'"
               :class="[
-                'p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-200 relative',
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
                 selectedAspectRatio === '1:1' 
                   ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
                   : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
               ]">
-              <div class="w-7 h-7 border-2 rounded-md" :class="selectedAspectRatio === '1:1' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-6 h-6 border-2 rounded-md" :class="selectedAspectRatio === '1:1' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">1:1 Square</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">960 × 960</span>
               </div>
-              <span v-if="selectedAspectRatio === '1:1'" class="absolute top-2 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="selectedAspectRatio === '1:1'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
             </button>
           </div>
         </div>
@@ -538,12 +559,13 @@
         const totalModelsCount = computed(() => modelsList.value.length);
         const allModelsReady = computed(() => totalModelsCount.value > 0 && readyModelsCount.value === totalModelsCount.value);
 
-        // Aspect Ratio Selection (Gemini Style)
-        const selectedAspectRatio = ref('9:16');
+        // Aspect Ratio Selection (Gemini Option A: Original Ratio Default)
+        const selectedAspectRatio = ref('original');
         const currentResolutionText = computed(() => {
           if (selectedAspectRatio.value === '16:9') return '1344 × 768';
           if (selectedAspectRatio.value === '1:1') return '960 × 960';
-          return '768 × 1344';
+          if (selectedAspectRatio.value === '9:16') return '768 × 1344';
+          return 'Original (Native Proportions)';
         });
 
         // Studio State: EMPTY textarea by default
