@@ -47,50 +47,13 @@ from downloader import start_model_download, get_download_status, cancel_downloa
 
 def prepare_prompt_for_minimax(prompt: str) -> str:
     """
-    Intelligently inspects the user prompt.
-    Supports free-form prompts generated from ChatGPT or typed directly,
-    including timestamps ([0s-2s], [00:01]), dialogue in quotes, multilingual speech
-    (Hindi, Bengali, English, etc.), and sound cues without forcing any rigid format.
-    
-    If the prompt already contains any sound, speech, dialogue, timestamps, or language cues,
-    it is preserved 100% VERBATIM so Qwen3-VL 32B receives exact instructions.
-    
-    Only when the prompt is purely visual with zero sound or speech intent,
-    we append an ambient silence directive to prevent random mumble hallucinations.
+    Passes user prompt directly to MiniMax H3 and Qwen3-VL 32B 100% raw.
+    If the prompt is empty, it returns an empty string without injecting any
+    hardcoded fallback words.
     """
-    clean = prompt.strip()
-    if not clean:
-        return "Natural camera movement. Audio: silent, quiet natural ambient background, no speech, no vocals, no music."
-
-    lower = clean.lower()
-
-    # 1. Direct audio/voice/music/speech/sound keywords
-    sound_indicators = [
-        "audio", "sound", "voice", "speech", "dialogue", "dialog", "vocal", "vocals",
-        "music", "song", "bgm", "sfx", "soundtrack", "ambient", "ambiance", "noise",
-        "speaks", "speaking", "speak", "says", "saying", "whisper", "whispering",
-        "talk", "talking", "talks", "shout", "shouting", "sing", "singing", "sings",
-        "voiceover", "narration", "narrator", "tone", "score", "beats", "melody",
-        "acoustic", "synthesizer", "orchestra", "silent", "silence", "quiet", "mute",
-        "hindi", "bengali", "english", "urdu", "tamil", "telugu", "sanskrit", "bilingual"
-    ]
-    if any(k in lower for k in sound_indicators):
-        return clean
-
-    # 2. Timestamp patterns (e.g., [0s-2s], [00:02], [2s-5s], 0s:, 2s - 5s)
-    if re.search(r'\[?\b\d+s?\s*[-–:]\s*\d+s?\b\]?', lower):
-        return clean
-
-    # 3. Spoken dialogue in quotes (e.g. "...", “...”)
-    if re.search(r'["“][^"“”]{2,}["”]', clean):
-        return clean
-
-    # 4. Multilingual Unicode scripts: Devanagari (\u0900-\u097F) or Bengali (\u0980-\u09FF)
-    if re.search(r'[\u0900-\u097F\u0980-\u09FF]', clean):
-        return clean
-
-    # Only append silence when prompt is purely visual without any sound or speech instructions
-    return clean + " Audio: silent, quiet natural ambient background, no speech, no vocals, no music."
+    if not prompt:
+        return ""
+    return prompt.strip()
 
 app = FastAPI(title="VideoGen Studio - MiniMax H3 Native Audio & Video")
 
@@ -142,31 +105,45 @@ async def cancel_model_download():
 @app.post("/api/generate")
 async def generate_video(
     background_tasks: BackgroundTasks,
-    image: UploadFile = File(...),
+    image: Optional[UploadFile] = File(None),
     prompt: str = Form(""),
     duration: int = Form(5),
     aspect_ratio: str = Form("original"),
-    mode: str = Form("auto")
+    mode: str = Form("auto"),
+    generation_type: str = Form("i2v")
 ):
     job_id = str(uuid.uuid4())[:8]
-    raw_img_path = os.path.join(UPLOADS_DIR, f"{job_id}_raw_{image.filename}")
-    with open(raw_img_path, "wb") as f:
-        shutil.copyfileobj(image.file, f)
 
-    formatted_img_path = os.path.join(UPLOADS_DIR, f"{job_id}_formatted.png")
-    # Option A (Gemini Style): Proportional preparation that completely eliminates stretching
-    _, target_w, target_h = prepare_image_for_minimax(raw_img_path, formatted_img_path, aspect_ratio=aspect_ratio)
+    if image is not None and getattr(image, "filename", None):
+        raw_img_path = os.path.join(UPLOADS_DIR, f"{job_id}_raw_{image.filename}")
+        with open(raw_img_path, "wb") as f:
+            shutil.copyfileobj(image.file, f)
 
-    aspect_desc = f"Original ({target_w}x{target_h})" if aspect_ratio in ("original", "auto", "native") else f"{aspect_ratio} ({target_w}x{target_h})"
+        formatted_img_path = os.path.join(UPLOADS_DIR, f"{job_id}_formatted.png")
+        # Proportional preparation that completely eliminates stretching
+        _, target_w, target_h = prepare_image_for_minimax(raw_img_path, formatted_img_path, aspect_ratio=aspect_ratio)
+        aspect_desc = f"Original ({target_w}x{target_h})" if aspect_ratio in ("original", "auto", "native") else f"{aspect_ratio} ({target_w}x{target_h})"
+    else:
+        # Pure Text-to-Video mode (No input image needed)
+        formatted_img_path = None
+        if aspect_ratio == "9:16":
+            target_w, target_h = 768, 1344
+        elif aspect_ratio == "1:1":
+            target_w, target_h = 960, 960
+        else:
+            target_w, target_h = 1344, 768
+            aspect_ratio = "16:9"
+        aspect_desc = f"Text-to-Video {aspect_ratio} ({target_w}x{target_h})"
 
     jobs[job_id] = {
         "id": job_id,
         "status": "queued",
         "progress": 0,
-        "step": f"Initializing {aspect_desc} video pipeline...",
+        "step": f"Initializing {aspect_desc} pipeline...",
         "prompt": prompt,
         "aspect_ratio": aspect_ratio,
         "resolution": f"{target_w}x{target_h}",
+        "generation_type": generation_type,
         "video_url": None,
         "filename": None,
         "error": None,
@@ -176,7 +153,7 @@ async def generate_video(
     background_tasks.add_task(run_generation_task, job_id, formatted_img_path, prompt, duration, aspect_ratio, target_w, target_h, mode)
     return {"job_id": job_id, "status": "queued", "resolution": f"{target_w}x{target_h}"}
 
-async def run_generation_task(job_id: str, formatted_image_path: str, prompt: str, duration: int, aspect_ratio: str, target_w: int, target_h: int, mode: str):
+async def run_generation_task(job_id: str, formatted_image_path: Optional[str], prompt: str, duration: int, aspect_ratio: str, target_w: int, target_h: int, mode: str):
     job = jobs[job_id]
     models_stat = check_models_status()
     comfy_stat = check_comfy_online()
@@ -184,7 +161,7 @@ async def run_generation_task(job_id: str, formatted_image_path: str, prompt: st
     # If models are not yet downloaded or user requested preview/demo mode
     if not models_stat["all_ready"] or mode == "demo":
         job["status"] = "processing"
-        job["step"] = f"Simulating MiniMax H3 8-step omni-modal diffusion ({aspect_ratio})..."
+        job["step"] = f"Simulating MiniMax H3 8-step diffusion ({aspect_ratio})..."
         job["progress"] = 15
 
         # Render video with audio using FFmpeg & test frames
@@ -200,24 +177,40 @@ async def run_generation_task(job_id: str, formatted_image_path: str, prompt: st
         job["progress"] = 85
         await asyncio.sleep(0.5)
 
-        # Generate animated video matching chosen aspect ratio
-        cmd = [
-            "ffmpeg", "-y",
-            "-loop", "1",
-            "-i", formatted_image_path,
-            "-f", "lavfi",
-            "-i", f"sine=frequency=180:duration={duration}",
-            "-filter_complex", f"[0:v]scale={target_w}:{target_h},zoompan=z='min(zoom+0.0015,1.15)':d={duration*25}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={target_w}x{target_h}[vout]",
-            "-map", "[vout]",
-            "-map", "1:a",
-            "-c:v", "libx264",
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac",
-            "-b:a", "192k",
-            "-t", str(duration),
-            "-movflags", "+faststart",
-            out_video_path
-        ]
+        if formatted_image_path and os.path.exists(formatted_image_path):
+            cmd = [
+                "ffmpeg", "-y",
+                "-loop", "1",
+                "-i", formatted_image_path,
+                "-f", "lavfi",
+                "-i", f"sine=frequency=180:duration={duration}",
+                "-filter_complex", f"[0:v]scale={target_w}:{target_h},zoompan=z='min(zoom+0.0015,1.15)':d={duration*25}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={target_w}x{target_h}[vout]",
+                "-map", "[vout]",
+                "-map", "1:a",
+                "-c:v", "libx264",
+                "-pix_fmt", "yuv420p",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-t", str(duration),
+                "-movflags", "+faststart",
+                out_video_path
+            ]
+        else:
+            cmd = [
+                "ffmpeg", "-y",
+                "-f", "lavfi",
+                "-i", f"color=c=0x0a0b12:s={target_w}x{target_h}:d={duration}",
+                "-f", "lavfi",
+                "-i", f"sine=frequency=220:duration={duration}",
+                "-c:v", "libx264",
+                "-pix_fmt", "yuv420p",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-t", str(duration),
+                "-movflags", "+faststart",
+                out_video_path
+            ]
+
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode == 0 and os.path.exists(out_video_path):
             job["status"] = "completed"
@@ -234,14 +227,16 @@ async def run_generation_task(job_id: str, formatted_image_path: str, prompt: st
     # Real ComfyUI execution when models are ready
     try:
         job["status"] = "processing"
-        job["step"] = "Uploading image to ComfyUI..."
-        job["progress"] = 10
+        if formatted_image_path and os.path.exists(formatted_image_path):
+            job["step"] = "Uploading image to ComfyUI..."
+            job["progress"] = 10
+            comfy_filename = upload_image_to_comfy(formatted_image_path)
+        else:
+            job["step"] = "Preparing Text-to-Video prompt conditioning..."
+            job["progress"] = 15
+            comfy_filename = None
 
-        # Intelligently prepare prompt: supports free-form ChatGPT prompts with timestamps,
-        # dialogue in Hindi/Bengali/English, and sound design without forcing rigid formats.
         clean_prompt = prepare_prompt_for_minimax(prompt)
-
-        comfy_filename = upload_image_to_comfy(formatted_image_path)
         prompt_workflow = build_minimax_h3_prompt(comfy_filename, clean_prompt, duration_sec=duration, width=target_w, height=target_h)
 
         client_id = str(uuid.uuid4())
@@ -582,6 +577,39 @@ async def serve_index():
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
+
+@app.get("/favicon.ico")
+async def serve_favicon():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon.ico"), media_type="image/x-icon")
+
+@app.get("/favicon-light.ico")
+async def serve_favicon_light_ico():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon-light.ico"), media_type="image/x-icon")
+
+@app.get("/favicon.svg")
+async def serve_favicon_svg():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon.svg"), media_type="image/svg+xml")
+
+@app.get("/favicon-light.svg")
+async def serve_favicon_light_svg():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon-light.svg"), media_type="image/svg+xml")
+
+@app.get("/apple-touch-icon.png")
+@app.get("/apple-touch-icon-precomposed.png")
+async def serve_apple_touch_icon():
+    return FileResponse(os.path.join(STATIC_DIR, "apple-touch-icon.png"), media_type="image/png")
+
+@app.get("/og-image.png")
+async def serve_og_image():
+    return FileResponse(os.path.join(STATIC_DIR, "og-image.png"), media_type="image/png")
+
+@app.get("/og-image-light.png")
+async def serve_og_image_light():
+    return FileResponse(os.path.join(STATIC_DIR, "og-image-light.png"), media_type="image/png")
+
+@app.get("/site.webmanifest")
+async def serve_webmanifest():
+    return FileResponse(os.path.join(STATIC_DIR, "site.webmanifest"), media_type="application/manifest+json")
 
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 

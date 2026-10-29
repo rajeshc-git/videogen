@@ -4,9 +4,59 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>VideoGen Studio - MiniMax H3</title>
-  <meta name="description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with native stereo audio on NVIDIA RTX 5080.">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" id="metaStatusBar">
+  <meta name="apple-mobile-web-app-title" content="VideoGen">
+  <meta name="application-name" content="VideoGen Studio">
+  <!-- Dynamic Theme Color for Mobile Homescreen & Status Bar (White in Light Mode, Black in Dark Mode) -->
+  <meta name="theme-color" content="#ffffff" id="metaThemeColor">
+
+  <!-- Immediate Head Script for Mobile Status Bar & Theme Matching -->
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('videogen_theme') || 'light';
+        var isDark = saved === 'dark';
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        var meta = document.getElementById('metaThemeColor');
+        if (meta) meta.setAttribute('content', isDark ? '#000000' : '#ffffff');
+        var bar = document.getElementById('metaStatusBar');
+        if (bar) bar.setAttribute('content', isDark ? 'black' : 'default');
+      } catch (e) {}
+    })();
+  </script>
+
+  <title>VideoGen Studio - MiniMax H3 (Native Video & Audio)</title>
+  <meta name="description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with synchronized native stereo audio on NVIDIA RTX 5080.">
+
+  <!-- Favicon & App Touch Icons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" id="appFavicon">
+  <link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="alternate icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <!-- Open Graph & Social Share Hero Metadata -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="VideoGen Studio">
+  <meta property="og:title" content="VideoGen Studio - MiniMax H3 Video & Audio AI">
+  <meta property="og:description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with synchronized native stereo audio.">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VideoGen Studio - MiniMax H3 AI Hero">
+
+  <!-- Twitter / X Social Share Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VideoGen Studio - MiniMax H3 Video & Audio AI">
+  <meta name="twitter:description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with synchronized native stereo audio.">
+  <meta name="twitter:image" content="/og-image.png">
 
   <!-- Google Fonts: Outfit, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,6 +102,12 @@
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
     }
+    
+    /* Seamless mobile notch & status bar safe-area integration */
+    header {
+      padding-top: env(safe-area-inset-top, 0px);
+      min-height: calc(4rem + env(safe-area-inset-top, 0px));
+    }
   </style>
 </head>
 <body class="h-full bg-neutral-50 text-neutral-900 dark:bg-black dark:text-neutral-100 transition-colors duration-200 antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
@@ -59,52 +115,182 @@
   <!-- Vue App Root Mount -->
   <div id="app" v-cloak class="min-h-full flex flex-col relative overflow-x-hidden">
 
-    <!-- App Header Navbar (Pure Monochrome Black & White) -->
-    <header class="sticky top-0 z-50 glass-clean bg-white/90 dark:bg-neutral-950/90 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-8 h-16 flex items-center justify-between shadow-sm">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold text-lg shadow-sm flex-shrink-0">
-          ⚡
-        </div>
+    <!-- App Header Navbar (Pure Monochrome Black & White with Responsive Mobile VidGen) -->
+    <header class="sticky top-0 z-50 glass-clean bg-white/90 dark:bg-neutral-950/90 border-b border-neutral-200 dark:border-neutral-800 px-3 sm:px-8 h-16 flex items-center justify-between gap-2 shadow-sm">
+      <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <!-- Branded Title Icon: Switches automatically between Light and Dark Icon; Click opens Studio Drawer -->
+        <button 
+          type="button" 
+          @click="studioDrawerOpen = !studioDrawerOpen" 
+          class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl overflow-hidden shadow-sm flex items-center justify-center flex-shrink-0 group hover:scale-105 active:scale-95 transition-all border p-0.5 cursor-pointer" 
+          :class="themeChoice === 'light' ? 'bg-white border-neutral-300 shadow-sm' : 'bg-neutral-900 border-neutral-800'" 
+          title="Click to open Studio Menu">
+          <img :src="themeChoice === 'light' ? '/favicon-light.svg' : '/favicon.svg'" alt="VideoGen Title Icon" class="w-full h-full object-contain">
+        </button>
         <div>
-          <h1 class="font-display font-extrabold text-lg leading-tight tracking-tight text-black dark:text-white">
-            VideoGen<span class="hidden sm:inline"> Studio</span>
+          <!-- Desktop: VideoGen Studio | Mobile: VidGen (prevents header overflow) -->
+          <h1 class="font-display font-extrabold text-base sm:text-lg leading-tight tracking-tight text-black dark:text-white flex items-center gap-1.5 sm:gap-2">
+            <span class="sm:hidden">VidGen</span>
+            <span class="hidden sm:inline">VideoGen Studio</span>
+            <!-- Active Mode Pill (Solid Black in Light Theme, White in Dark Theme) -->
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-transparent bg-black text-white dark:bg-white dark:text-black shadow-sm">
+              {{ currentStudioMode === 't2v' ? 'Text-to-Video' : 'Image-to-Video' }}
+            </span>
           </h1>
-          <div class="text-xs font-mono font-medium text-neutral-500 dark:text-neutral-400">
-            MiniMax H3
+          <!-- Subheader: Hidden on mobile as requested -->
+          <div class="hidden sm:block text-xs font-mono font-medium text-neutral-500 dark:text-neutral-400">
+            MiniMax H3 Native Audio
           </div>
         </div>
       </div>
 
-      <!-- Header Actions: Completion Alert Toggle + Theme Toggler -->
-      <div class="flex items-center gap-2">
+      <!-- Header Actions: Share + Completion Alert Toggle + Theme Toggler (Compact on Mobile) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        <!-- Share Studio Button on the side -->
+        <button 
+          type="button" 
+          @click="openShareModal" 
+          class="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm"
+          title="Share VideoGen Studio">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <span class="hidden sm:inline">Share</span>
+        </button>
+
+        <!-- Completion Alert Bell Toggle -->
         <button 
           type="button" 
           @click="toggleNotificationPermission" 
-          class="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm"
-          :title="notificationsEnabled ? 'Completion alerts & ting chime active' : 'Click to enable completion alert & sound'">
+          class="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-all border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm"
+          :title="notificationsEnabled ? 'Completion alerts active' : 'Click to enable alerts'">
           <span>{{ notificationsEnabled ? '🔔' : '🔕' }}</span>
-          <span class="hidden sm:inline">{{ notificationsEnabled ? 'Alerts On' : 'Enable Alerts' }}</span>
+          <span class="hidden sm:inline">{{ notificationsEnabled ? 'Alerts' : 'Mute' }}</span>
         </button>
 
-        <!-- Minimal 2-State Theme Toggler: Light / Dark -->
-        <div class="flex items-center bg-neutral-200/80 dark:bg-neutral-900 p-1 rounded-full border border-neutral-300 dark:border-neutral-800">
+        <!-- Minimal 2-State Theme Toggler: Icon-Only on Mobile, Full on Desktop -->
+        <div class="flex items-center bg-neutral-200/80 dark:bg-neutral-900 p-0.5 sm:p-1 rounded-full border border-neutral-300 dark:border-neutral-800">
           <button 
             type="button" 
             @click="setTheme('light')" 
-            :class="['px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all', themeChoice === 'light' ? 'bg-black text-white shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-black']"
-            title="Light Mode (Default)">
-            ☀️ <span>Light</span>
+            :class="['px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all', themeChoice === 'light' ? 'bg-black text-white shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-black']"
+            title="Light Mode">
+            <span>☀️</span>
+            <span class="hidden sm:inline">Light</span>
           </button>
           <button 
             type="button" 
             @click="setTheme('dark')" 
-            :class="['px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all', themeChoice === 'dark' ? 'bg-white text-black shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-white']"
+            :class="['px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all', themeChoice === 'dark' ? 'bg-white text-black shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-white']"
             title="Dark Mode">
-            🌙 <span>Dark</span>
+            <span>🌙</span>
+            <span class="hidden sm:inline">Dark</span>
           </button>
         </div>
       </div>
     </header>
+
+    <!-- Studio Navigation Drawer (Slide-out from Left on Brand Icon Click) -->
+    <div 
+      v-if="studioDrawerOpen" 
+      class="fixed inset-0 z-50 flex"
+      @keydown.esc="studioDrawerOpen = false">
+      <!-- Backdrop Overlay -->
+      <div 
+        @click="studioDrawerOpen = false" 
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity">
+      </div>
+
+      <!-- Drawer Content Sidebar -->
+      <div class="relative w-80 max-w-[85vw] bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 h-full flex flex-col shadow-2xl z-10">
+        <!-- Drawer Header -->
+        <div class="p-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl overflow-hidden border p-0.5" :class="themeChoice === 'light' ? 'bg-white border-neutral-300' : 'bg-neutral-900 border-neutral-800'">
+              <img :src="themeChoice === 'light' ? '/favicon-light.svg' : '/favicon.svg'" alt="VideoGen" class="w-full h-full object-contain">
+            </div>
+            <div>
+              <h3 class="font-display font-extrabold text-sm text-black dark:text-white">Studio Modes</h3>
+              <p class="text-[11px] font-mono text-neutral-500">MiniMax H3 Engine</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            @click="studioDrawerOpen = false" 
+            class="w-8 h-8 rounded-full flex items-center justify-center text-neutral-500 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-all font-bold">
+            ✕
+          </button>
+        </div>
+
+        <!-- Modes Selection List -->
+        <div class="p-4 space-y-3 flex-1 overflow-y-auto">
+          <span class="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 px-1">
+            Select Studio Mode
+          </span>
+
+          <!-- Option 1: Image to Video (Default) -->
+          <button 
+            type="button" 
+            @click="switchMode('i2v')"
+            :class="[
+              'w-full text-left p-3.5 rounded-2xl border transition-all flex items-start gap-3 relative cursor-pointer',
+              currentStudioMode === 'i2v'
+                ? 'border-black dark:border-white bg-neutral-100 dark:bg-neutral-900 ring-2 ring-black dark:ring-white shadow-sm'
+                : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-neutral-900/50'
+            ]">
+            <div class="w-9 h-9 rounded-xl bg-neutral-200/80 dark:bg-neutral-800 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
+              🖼️
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <strong class="font-display font-bold text-sm text-black dark:text-white">Image to Video</strong>
+                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold">Default</span>
+              </div>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">
+                Animate your photo with camera motion and native audio.
+              </p>
+            </div>
+            <span v-if="currentStudioMode === 'i2v'" class="text-black dark:text-white font-bold text-sm">✓</span>
+          </button>
+
+          <!-- Option 2: Text to Video -->
+          <button 
+            type="button" 
+            @click="switchMode('t2v')"
+            :class="[
+              'w-full text-left p-3.5 rounded-2xl border transition-all flex items-start gap-3 relative cursor-pointer',
+              currentStudioMode === 't2v'
+                ? 'border-black dark:border-white bg-neutral-100 dark:bg-neutral-900 ring-2 ring-black dark:ring-white shadow-sm'
+                : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-neutral-900/50'
+            ]">
+            <div class="w-9 h-9 rounded-xl bg-neutral-200/80 dark:bg-neutral-800 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
+              ✍️
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <strong class="font-display font-bold text-sm text-black dark:text-white">Text to Video</strong>
+                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold">New</span>
+              </div>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">
+                Full text prompt generation with aspect ratio & native synchronized sound.
+              </p>
+            </div>
+            <span v-if="currentStudioMode === 't2v'" class="text-black dark:text-white font-bold text-sm">✓</span>
+          </button>
+        </div>
+
+        <!-- Drawer Footer Info -->
+        <div class="p-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/30">
+          <p class="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
+            ⚡ Powered by MiniMax H3 model
+          </p>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Workspace Container -->
     <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -112,14 +298,23 @@
       <!-- Video Output Modal / In-Page Ready Banner (Only shown when Video is Ready or Generating) -->
       <section v-if="isGenerating || videoUrl" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark transition-all">
         
-        <!-- Generating State -->
+        <!-- Generating State (with Pulsing Hero Icon & Radar Glow) -->
         <div v-if="isGenerating" class="py-8 flex flex-col items-center justify-center text-center space-y-4">
-          <div class="relative w-20 h-20 flex items-center justify-center">
-            <div class="absolute inset-0 rounded-full border-4 border-neutral-200 dark:border-neutral-800 border-t-black dark:border-t-white animate-spin"></div>
-            <span class="font-display font-extrabold text-xl text-black dark:text-white">{{ jobProgress }}%</span>
+          <div class="relative w-24 h-24 flex items-center justify-center">
+            <!-- Pulsing Ambient Radar Glow -->
+            <div class="absolute inset-0 rounded-3xl bg-indigo-500/20 dark:bg-indigo-400/20 animate-ping opacity-60"></div>
+            <!-- Spinning Perimeter Ring -->
+            <div class="absolute inset-0 rounded-3xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 border-t-indigo-500 dark:border-t-indigo-400 animate-spin"></div>
+            <!-- Centered Branded Hero Emblem with Progress Badge -->
+            <div class="relative w-16 h-16 rounded-2xl bg-black text-white dark:bg-neutral-900 border border-neutral-700/60 shadow-xl flex items-center justify-center overflow-hidden p-2">
+              <img src="/favicon.svg" alt="Generating..." class="w-full h-full object-contain">
+            </div>
+            <span class="absolute -bottom-2 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-extrabold bg-black text-white dark:bg-white dark:text-black shadow-md border border-neutral-700">
+              {{ jobProgress }}%
+            </span>
           </div>
           <div>
-            <h3 class="font-display font-bold text-lg text-black dark:text-white">Generating {{ selectedAspectRatio }} Video & Audio</h3>
+            <h3 class="font-display font-bold text-lg text-black dark:text-white">Generating {{ activeAspectRatioDisplay }} Video & Audio</h3>
             <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ jobStepDetail }}</p>
           </div>
           <div class="w-full max-w-md bg-neutral-100 dark:bg-neutral-900 rounded-full h-2 overflow-hidden border border-neutral-200 dark:border-neutral-800">
@@ -127,14 +322,14 @@
           </div>
         </div>
 
-        <!-- Video Ready State (Play and Download) -->
+        <!-- Video Ready State (Play, Download & Share) -->
         <div v-else-if="videoUrl" class="space-y-6">
           <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
               <h3 class="font-display font-bold text-lg text-black dark:text-white">Your Video is Ready</h3>
               <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 font-bold">
-                {{ selectedAspectRatio }}
+                {{ activeAspectRatioDisplay }}
               </span>
             </div>
             <button type="button" @click="videoUrl = ''" class="text-xs font-semibold text-neutral-500 hover:text-black dark:hover:text-white">
@@ -152,9 +347,9 @@
               playsinline 
               :class="[
                 'rounded-xl object-contain bg-black max-h-[550px] w-auto',
-                selectedAspectRatio === '9:16' ? 'max-w-[320px]' : 
-                selectedAspectRatio === '16:9' ? 'w-full max-w-2xl aspect-video' : 
-                selectedAspectRatio === '1:1' ? 'w-[380px] aspect-square' :
+                activeAspectRatioDisplay === '9:16' ? 'max-w-[320px]' : 
+                activeAspectRatioDisplay === '16:9' ? 'w-full max-w-2xl aspect-video' : 
+                activeAspectRatioDisplay === '1:1' ? 'w-[380px] aspect-square' :
                 'max-w-2xl w-auto'
               ]">
             </video>
@@ -172,13 +367,13 @@
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              <span>Download Video (MP4 + Audio)</span>
+              <span>Download Video</span>
             </a>
 
             <button 
               type="button" 
               @click="resetFormForNew" 
-              class="w-full sm:w-auto py-4 px-6 rounded-2xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-display font-bold text-sm border border-neutral-200 dark:border-neutral-800 transition-all">
+              class="w-full sm:w-auto py-4 px-6 rounded-2xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-display font-bold text-sm border border-neutral-200 dark:border-neutral-800 transition-all cursor-pointer">
               Create Another Video
             </button>
           </div>
@@ -186,8 +381,8 @@
 
       </section>
 
-      <!-- Main Creation Studio (Card 1: Upload & Aspect Ratio) -->
-      <section class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark space-y-6">
+      <!-- Main Creation Studio (Card 1: Upload & Aspect Ratio) - Image to Video Mode -->
+      <section v-if="currentStudioMode === 'i2v'" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark space-y-6">
         
         <!-- Step 1: Upload Source Image -->
         <div>
@@ -392,6 +587,7 @@
             <div class="flex items-center gap-2">
               <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">Duration:</label>
               <select v-model="durationSec" class="rounded-xl px-3 py-1.5 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer">
+                <option value="3">3 Seconds</option>
                 <option value="5">5 Seconds</option>
                 <option value="8">8 Seconds</option>
                 <option value="10">10 Seconds</option>
@@ -408,22 +604,151 @@
             </button>
           </div>
 
-          <!-- Hero Black & White Generate Button -->
+          <!-- Hero Black & White Generate Button (Renamed to simply 'Start' with no icon) -->
           <button 
             type="button" 
             @click="startGeneration" 
             :disabled="!selectedImageFile || isGenerating"
             :class="[
-              'w-full py-4 rounded-2xl font-display font-extrabold text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all duration-200',
+              'w-full py-4 rounded-2xl font-display font-extrabold text-base sm:text-lg flex items-center justify-center transition-all duration-200',
               (!selectedImageFile || isGenerating) 
                 ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
                 : 'bg-black text-white dark:bg-white dark:text-black shadow-btn-black dark:shadow-btn-white hover:opacity-90 active:scale-[0.99]'
             ]">
-            <span class="text-xl">⚡</span>
-            <span>{{ isGenerating ? 'Generating Video & Audio...' : 'Generate ' + selectedAspectRatio + ' Video' }}</span>
+            <span>{{ isGenerating ? 'Generating Video & Audio...' : 'Start' }}</span>
           </button>
         </div>
 
+      </section>
+
+      <!-- Text to Video Studio (Dedicated Mode: Big Prompt, Aspect Ratio, Duration, Start) -->
+      <section v-else-if="currentStudioMode === 't2v'" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark space-y-6">
+        
+        <!-- Step 1: Prompt -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">1</span>
+              <div>
+                <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Prompt</h2>
+                <p class="text-xs text-neutral-500 dark:text-neutral-400">Describe the video & audio</p>
+              </div>
+            </div>
+            <button 
+              v-if="t2vPromptText.trim()" 
+              type="button" 
+              @click="t2vPromptText = ''" 
+              class="text-xs font-medium text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer">
+              Clear Text
+            </button>
+          </div>
+
+          <div class="relative">
+            <textarea 
+              v-model="t2vPromptText" 
+              rows="6" 
+              placeholder="Describe your video & audio, or ask ChatGPT to give you and paste here..."
+              class="w-full rounded-2xl p-4 sm:p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all resize-y placeholder:text-neutral-400 font-sans leading-relaxed">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Step 2: Aspect Ratio -->
+        <div class="pt-2 border-t border-neutral-200 dark:border-neutral-800">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">2</span>
+            <div>
+              <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Aspect Ratio</h2>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-3 gap-3">
+            <!-- 16:9 Landscape Card -->
+            <button 
+              type="button" 
+              @click="t2vAspectRatio = '16:9'"
+              :class="[
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
+                t2vAspectRatio === '16:9' 
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+              ]">
+              <div class="w-8 h-5 border-2 rounded-md" :class="t2vAspectRatio === '16:9' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div>
+                <strong class="block text-xs text-black dark:text-white">16:9 Landscape</strong>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">1344 × 768</span>
+              </div>
+              <span v-if="t2vAspectRatio === '16:9'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+            </button>
+
+            <!-- 9:16 Vertical Card -->
+            <button 
+              type="button" 
+              @click="t2vAspectRatio = '9:16'"
+              :class="[
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
+                t2vAspectRatio === '9:16' 
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+              ]">
+              <div class="w-5 h-8 border-2 rounded-md" :class="t2vAspectRatio === '9:16' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div>
+                <strong class="block text-xs text-black dark:text-white">9:16 Vertical</strong>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">768 × 1344</span>
+              </div>
+              <span v-if="t2vAspectRatio === '9:16'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+            </button>
+
+            <!-- 1:1 Square Card -->
+            <button 
+              type="button" 
+              @click="t2vAspectRatio = '1:1'"
+              :class="[
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
+                t2vAspectRatio === '1:1' 
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+              ]">
+              <div class="w-6 h-6 border-2 rounded-md" :class="t2vAspectRatio === '1:1' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div>
+                <strong class="block text-xs text-black dark:text-white">1:1 Square</strong>
+                <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">960 × 960</span>
+              </div>
+              <span v-if="t2vAspectRatio === '1:1'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Duration Selection Controls -->
+        <div class="flex items-center justify-between gap-4 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">Duration:</label>
+            <select v-model="t2vDurationSec" class="rounded-xl px-3 py-1.5 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer">
+              <option value="3">3 Seconds</option>
+              <option value="5">5 Seconds</option>
+              <option value="8">8 Seconds</option>
+              <option value="10">10 Seconds</option>
+              <option value="15">15 Seconds</option>
+            </select>
+          </div>
+          <span class="text-xs text-neutral-400 font-mono">
+            {{ t2vAspectRatio === '16:9' ? '1344 × 768' : (t2vAspectRatio === '9:16' ? '768 × 1344' : '960 × 960') }}
+          </span>
+        </div>
+
+        <!-- Start Button (Renamed to simple 'Start' with no icon) -->
+        <button 
+          type="button" 
+          @click="startT2VGeneration" 
+          :disabled="!t2vPromptText.trim() || isGenerating"
+          :class="[
+            'w-full py-4 rounded-2xl font-display font-extrabold text-base sm:text-lg flex items-center justify-center transition-all duration-200 cursor-pointer',
+            (!t2vPromptText.trim() || isGenerating) 
+              ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
+              : 'bg-black text-white dark:bg-white dark:text-black shadow-btn-black dark:shadow-btn-white hover:opacity-90 active:scale-[0.99]'
+          ]">
+          <span>{{ isGenerating ? 'Generating Video & Audio...' : 'Start' }}</span>
+        </button>
       </section>
 
       <!-- Recent Activity (All Generations with Play, Download, Trash Delete & Clear All Button) -->
@@ -496,7 +821,7 @@
               <a 
                 :href="'/api/download/' + item.filename" 
                 :download="item.filename" 
-                title="Download MP4"
+                title="Download Video"
                 class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-all flex items-center gap-1 shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -524,6 +849,105 @@
 
     </main>
 
+    <!-- Social Share & Hero Icon Modal -->
+    <div 
+      v-if="shareModalOpen" 
+      @click.self="shareModalOpen = false" 
+      class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+      
+      <div class="max-w-lg w-full bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 shadow-2xl space-y-5 animate-in fade-in duration-200">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-700 p-0.5 flex items-center justify-center shadow-sm">
+              <img src="/favicon.svg" alt="VideoGen Icon" class="w-full h-full object-contain">
+            </div>
+            <div>
+              <h3 class="font-display font-extrabold text-base text-black dark:text-white leading-tight">Share VideoGen Studio</h3>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">MiniMax H3 Native Audio & Video</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            @click="shareModalOpen = false" 
+            class="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm font-bold transition-all">
+            ✕
+          </button>
+        </div>
+
+        <!-- Social Share Hero Card Preview (Hidden on Mobile as requested) -->
+        <div class="hidden sm:block relative rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-md group">
+          <img 
+            :src="themeChoice === 'light' ? '/og-image-light.png' : '/og-image.png'" 
+            :alt="themeChoice === 'light' ? 'VideoGen Studio Light Hero Card' : 'VideoGen Studio Dark Hero Card'" 
+            class="w-full h-auto object-cover aspect-[1200/630]">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+            <div>
+              <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/20 text-white backdrop-blur-md mb-1 border border-white/20">
+                Hero Share Preview ({{ themeChoice === 'light' ? 'Light Theme' : 'Dark Theme' }})
+              </span>
+              <p class="text-xs font-medium text-white/90">
+                This hero banner automatically displays when shared across WhatsApp, Facebook, Instagram & Discord.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Link Copy & Native Share Actions -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+            <input 
+              type="text" 
+              readonly 
+              :value="shareUrl" 
+              class="flex-1 bg-transparent px-3 text-xs font-mono text-neutral-600 dark:text-neutral-300 outline-none select-all" />
+            <button 
+              type="button" 
+              @click="copyShareLink" 
+              class="px-4 py-2 rounded-xl text-xs font-bold font-display transition-all flex items-center gap-1.5 shadow-sm"
+              :class="linkCopied ? 'bg-emerald-600 text-white' : 'bg-black text-white dark:bg-white dark:text-black hover:opacity-90'">
+              <span v-if="linkCopied">✓ Copied!</span>
+              <span v-else>Copy Link</span>
+            </button>
+          </div>
+
+          <!-- Quick Social Share Bar: WhatsApp, Facebook, Instagram, System -->
+          <div class="grid grid-cols-4 gap-2 pt-1">
+            <button 
+              type="button" 
+              @click="shareToPlatform('whatsapp')" 
+              class="py-2.5 px-2 rounded-xl bg-neutral-100 dark:bg-neutral-900 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-neutral-200 dark:border-neutral-800 hover:border-emerald-300 text-xs font-bold text-neutral-800 dark:text-neutral-200 flex flex-col items-center gap-1 transition-all">
+              <span class="text-base">💬</span>
+              <span class="truncate">WhatsApp</span>
+            </button>
+            <button 
+              type="button" 
+              @click="shareToPlatform('facebook')" 
+              class="py-2.5 px-2 rounded-xl bg-neutral-100 dark:bg-neutral-900 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-neutral-200 dark:border-neutral-800 hover:border-blue-300 text-xs font-bold text-neutral-800 dark:text-neutral-200 flex flex-col items-center gap-1 transition-all">
+              <span class="text-base text-blue-600 dark:text-blue-400 font-extrabold">f</span>
+              <span class="truncate">Facebook</span>
+            </button>
+            <button 
+              type="button" 
+              @click="shareToPlatform('instagram')" 
+              class="py-2.5 px-2 rounded-xl bg-neutral-100 dark:bg-neutral-900 hover:bg-pink-50 dark:hover:bg-pink-950/40 border border-neutral-200 dark:border-neutral-800 hover:border-pink-300 text-xs font-bold text-neutral-800 dark:text-neutral-200 flex flex-col items-center gap-1 transition-all">
+              <span class="text-base">📸</span>
+              <span class="truncate">Instagram</span>
+            </button>
+            <button 
+              type="button" 
+              @click="nativeSystemShare" 
+              class="py-2.5 px-2 rounded-xl bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-800 dark:text-neutral-200 flex flex-col items-center gap-1 transition-all">
+              <span class="text-base">📱</span>
+              <span class="truncate">System</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
   <!-- Vue 3 Application Script -->
@@ -542,10 +966,25 @@
         }
 
         function applyThemeClass() {
-          if (themeChoice.value === 'dark') {
+          const isDark = themeChoice.value === 'dark';
+          if (isDark) {
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');
+          }
+
+          // Dynamically sync mobile status bar & homescreen PWA top area (White in Light, Black in Dark)
+          const metaThemeColor = document.getElementById('metaThemeColor');
+          if (metaThemeColor) {
+            metaThemeColor.setAttribute('content', isDark ? '#000000' : '#ffffff');
+          }
+          const metaStatusBar = document.getElementById('metaStatusBar');
+          if (metaStatusBar) {
+            metaStatusBar.setAttribute('content', isDark ? 'black' : 'default');
+          }
+
+          if (!isGenerating.value) {
+            restoreDefaultFavicon();
           }
         }
 
@@ -566,6 +1005,22 @@
           if (selectedAspectRatio.value === '1:1') return '960 × 960';
           if (selectedAspectRatio.value === '9:16') return '768 × 1344';
           return 'Original (Native Proportions)';
+        });
+
+        // Studio Navigation & Mode State: 'i2v' (Default) or 't2v' (Text to Video)
+        const studioDrawerOpen = ref(false);
+        const currentStudioMode = ref('i2v');
+        const t2vPromptText = ref('');
+        const t2vAspectRatio = ref('16:9');
+        const t2vDurationSec = ref('5');
+
+        function switchMode(m) {
+          currentStudioMode.value = m;
+          studioDrawerOpen.value = false;
+        }
+
+        const activeAspectRatioDisplay = computed(() => {
+          return currentStudioMode.value === 't2v' ? t2vAspectRatio.value : selectedAspectRatio.value;
         });
 
         // Studio State: EMPTY textarea by default
@@ -646,6 +1101,7 @@
           selectedImageFile.value = null;
           imagePreviewUrl.value = '';
           promptText.value = '';
+          t2vPromptText.value = '';
           fetchHistory();
         }
 
@@ -818,6 +1274,131 @@
           }
         }
 
+        // Dynamic Favicon & Title Progress Ring
+        let faviconCanvas = null;
+        function updateFaviconProgress(pct) {
+          try {
+            if (!faviconCanvas) {
+              faviconCanvas = document.createElement('canvas');
+              faviconCanvas.width = 32;
+              faviconCanvas.height = 32;
+            }
+            const ctx = faviconCanvas.getContext('2d');
+            ctx.clearRect(0, 0, 32, 32);
+
+            // Dark rounded background
+            ctx.fillStyle = '#0a0b12';
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(0, 0, 32, 32, 8);
+            } else {
+              ctx.arc(16, 16, 15, 0, 2 * Math.PI);
+            }
+            ctx.fill();
+
+            // Progress track ring
+            ctx.strokeStyle = '#272b3c';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.arc(16, 16, 11, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Active neon blue progress arc
+            const startAngle = -Math.PI / 2;
+            const endAngle = startAngle + (Math.max(5, pct) / 100) * (2 * Math.PI);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(16, 16, 11, startAngle, endAngle);
+            ctx.stroke();
+
+            // Core center dot
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(16, 16, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            const favLink = document.getElementById('appFavicon');
+            if (favLink) {
+              favLink.href = faviconCanvas.toDataURL('image/png');
+            }
+          } catch (e) {
+            console.warn('Favicon progress render error:', e);
+          }
+        }
+
+        function restoreDefaultFavicon() {
+          const favLink = document.getElementById('appFavicon');
+          if (favLink) {
+            favLink.href = themeChoice.value === 'light' ? '/favicon-light.svg' : '/favicon.svg';
+          }
+        }
+
+        // Social Share Modal Logic
+        const shareModalOpen = ref(false);
+        const linkCopied = ref(false);
+        const shareUrl = computed(() => window.location.origin || window.location.href);
+
+        function openShareModal() {
+          linkCopied.value = false;
+          shareModalOpen.value = true;
+        }
+
+        async function copyShareLink() {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(shareUrl.value);
+            } else {
+              const input = document.createElement('input');
+              input.value = shareUrl.value;
+              document.body.appendChild(input);
+              input.select();
+              document.execCommand('copy');
+              document.body.removeChild(input);
+            }
+            linkCopied.value = true;
+            setTimeout(() => { linkCopied.value = false; }, 2500);
+          } catch (err) {
+            console.warn('Copy failed:', err);
+          }
+        }
+
+        async function nativeSystemShare() {
+          if (navigator.share) {
+            try {
+              await navigator.share({
+                title: 'VideoGen Studio - MiniMax H3',
+                text: 'Generate high-fidelity AI videos with synchronized native stereo audio on MiniMax H3!',
+                url: shareUrl.value,
+              });
+            } catch (err) {
+              if (err.name !== 'AbortError') {
+                copyShareLink();
+              }
+            }
+          } else {
+            copyShareLink();
+          }
+        }
+
+        function shareToPlatform(platform) {
+          const url = encodeURIComponent(shareUrl.value);
+          const text = encodeURIComponent('Check out VideoGen Studio - Unlimited Image-to-Video generation with native stereo audio powered by MiniMax H3!');
+          let target = '';
+          if (platform === 'whatsapp') {
+            target = `https://api.whatsapp.com/send?text=${text}%20${url}`;
+          } else if (platform === 'facebook') {
+            target = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+          } else if (platform === 'instagram') {
+            copyShareLink();
+            target = 'https://www.instagram.com/';
+          }
+          if (target) {
+            window.open(target, '_blank', 'noopener,noreferrer');
+          }
+        }
+
         function triggerCompletionNotification() {
           // 1. Play crystal clear ting chime
           playTingSound();
@@ -825,12 +1406,12 @@
           // 2. Alert user via browser tab title change
           document.title = '🎬 Video Ready! - VideoGen Studio';
 
-          // 3. Native browser & OS notification
+          // 3. Native browser & OS notification with high-res icon
           if ('Notification' in window && Notification.permission === 'granted') {
             try {
               const notif = new Notification('Video Generation Ready! 🎬', {
                 body: 'Your MiniMax H3 video & audio has finished generating.',
-                icon: '/favicon.ico',
+                icon: '/icon-192.png',
                 tag: 'videogen-complete'
               });
               notif.onclick = () => {
@@ -843,7 +1424,7 @@
           }
         }
 
-        // Generation
+        // Image to Video Generation (Default Mode)
         async function startGeneration() {
           if (!selectedImageFile.value) {
             alert('Please upload an image first.');
@@ -859,10 +1440,15 @@
           jobProgress.value = 5;
           jobStepDetail.value = `Formatting ${selectedAspectRatio.value} canvas & submitting...`;
 
+          // Live animated loading favicon and title
+          updateFaviconProgress(5);
+          document.title = '(5%) ⏳ VideoGen Studio';
+
           // Scroll smoothly to top to show progress
           window.scrollTo({ top: 0, behavior: 'smooth' });
 
           const fd = new FormData();
+          fd.append('generation_type', 'i2v');
           fd.append('image', selectedImageFile.value);
           fd.append('prompt', promptText.value.trim());
           fd.append('duration', durationSec.value);
@@ -879,6 +1465,50 @@
           } catch (e) {
             alert('Generation error: ' + e.message);
             isGenerating.value = false;
+            restoreDefaultFavicon();
+            document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
+          }
+        }
+
+        // Text to Video Generation (New Dedicated Mode)
+        async function startT2VGeneration() {
+          if (!t2vPromptText.value.trim()) {
+            alert('Please enter a prompt to generate video.');
+            return;
+          }
+
+          // Prime Web Audio & prompt notification permission on user gesture (required for iPhone Safari)
+          initAudioContext();
+          requestNotificationPermission();
+
+          isGenerating.value = true;
+          videoUrl.value = '';
+          jobProgress.value = 5;
+          jobStepDetail.value = `Formatting ${t2vAspectRatio.value} canvas & submitting prompt...`;
+
+          updateFaviconProgress(5);
+          document.title = '(5%) ⏳ VideoGen Studio';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+          const fd = new FormData();
+          fd.append('generation_type', 't2v');
+          fd.append('prompt', t2vPromptText.value.trim());
+          fd.append('duration', t2vDurationSec.value);
+          fd.append('aspect_ratio', t2vAspectRatio.value);
+          fd.append('mode', allModelsReady.value ? 'auto' : 'demo');
+
+          try {
+            const res = await fetch('/api/generate', { method: 'POST', body: fd });
+            const d = await res.json();
+            currentJobId.value = d.job_id;
+
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(pollJob, 500);
+          } catch (e) {
+            alert('Generation error: ' + e.message);
+            isGenerating.value = false;
+            restoreDefaultFavicon();
+            document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
           }
         }
 
@@ -892,16 +1522,24 @@
             jobProgress.value = job.progress || 0;
             jobStepDetail.value = job.step || 'Processing...';
 
+            // Live tab and favicon loading indicator
+            updateFaviconProgress(jobProgress.value);
+            document.title = `(${jobProgress.value}%) ⏳ VideoGen Studio`;
+
             if (job.status === 'completed') {
               clearInterval(pollTimer);
+              restoreDefaultFavicon();
+              document.title = '🎬 Video Ready! - VideoGen Studio';
               isGenerating.value = false;
               videoUrl.value = job.video_url;
-              downloadFilename.value = job.filename || `MiniMaxH3_${selectedAspectRatio.value.replace(':', '_')}.mp4`;
+              downloadFilename.value = job.filename || `MiniMaxH3_${activeAspectRatioDisplay.value.replace(':', '_')}.mp4`;
               fetchHistory();
               // Trigger notification & ting sound chime
               triggerCompletionNotification();
             } else if (job.status === 'failed') {
               clearInterval(pollTimer);
+              restoreDefaultFavicon();
+              document.title = '❌ Generation Failed - VideoGen Studio';
               isGenerating.value = false;
               alert('Generation error: ' + (job.error || 'Unknown error'));
             }
@@ -969,7 +1607,10 @@
           }
 
           window.addEventListener('focus', () => {
-            document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
+            if (!isGenerating.value) {
+              document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
+              restoreDefaultFavicon();
+            }
           });
         });
 
@@ -1010,7 +1651,22 @@
           deleteHistoryItem,
           confirmClearAll,
           clearHistory,
-          startGeneration
+          startGeneration,
+          startT2VGeneration,
+          studioDrawerOpen,
+          currentStudioMode,
+          t2vPromptText,
+          t2vAspectRatio,
+          t2vDurationSec,
+          activeAspectRatioDisplay,
+          switchMode,
+          shareModalOpen,
+          linkCopied,
+          shareUrl,
+          openShareModal,
+          copyShareLink,
+          nativeSystemShare,
+          shareToPlatform
         };
       }
     }).mount('#app');
