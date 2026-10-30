@@ -1,12 +1,39 @@
 @echo off
-title VideoGen Studio - MiniMax H3 Localhost:7860
+title VidGen - MiniMax H3 Localhost:7860
 cd /d "%~dp0"
+
 echo ====================================================
-echo Starting VideoGen Studio (MiniMax H3 Native Audio + Video)
-echo Connected to ComfyUI on http://127.0.0.1:8188
-echo Local URL: http://localhost:7860
-echo LAN URL:   http://192.168.7.93:7860
+echo   VidGen - MiniMax H3 Native Audio ^& Video Studio
 echo ====================================================
+echo.
+
+where python >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+    echo [ERROR] Python was not found in your system PATH!
+    echo Please install Python 3.10+ and check "Add Python to PATH".
+    echo.
+    pause
+    exit /b 1
+)
+
+python -c "import fastapi, uvicorn, requests, websockets, PIL" >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+    echo Installing required packages from requirements.txt...
+    pip install -r requirements.txt
+    if %ERRORLEVEL% neq 0 (
+        echo [ERROR] Failed to install dependencies.
+        pause
+        exit /b 1
+    )
+    echo.
+)
+
+echo Starting VidGen server on http://localhost:7860...
+echo.
 
 python server.py
-pause
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [ERROR] VidGen server stopped unexpectedly.
+    pause
+)

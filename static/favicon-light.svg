@@ -1,48 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
-  <defs>
-    <linearGradient id="bgLightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="50%" stop-color="#f8fafc"/>
-      <stop offset="100%" stop-color="#edf2f7"/>
-    </linearGradient>
-    <linearGradient id="primaryLightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7"/>
-      <stop offset="45%" stop-color="#4f46e5"/>
-      <stop offset="100%" stop-color="#9333ea"/>
-    </linearGradient>
-    <radialGradient id="glowLightGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="dropLightGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-  </defs>
-
-  <!-- Clean Light Squircle Base with crisp border -->
-  <rect x="20" y="20" width="472" height="472" rx="112" fill="url(#bgLightGrad)" stroke="#cbd5e1" stroke-width="8"/>
-
-  <!-- Radial Soft Glow Behind Emblem -->
-  <circle cx="256" cy="256" r="190" fill="url(#glowLightGrad)"/>
-
-  <!-- Subtly grooved orbit ring -->
-  <circle cx="256" cy="256" r="162" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-dasharray="14 10"/>
-
-  <!-- Native Audio Soundwave Bars on Left -->
-  <rect x="94" y="220" width="12" height="72" rx="6" fill="#94a3b8" opacity="0.8"/>
-  <rect x="118" y="190" width="12" height="132" rx="6" fill="#6366f1" opacity="0.9"/>
-  <rect x="142" y="162" width="12" height="188" rx="6" fill="url(#primaryLightGrad)"/>
-
-  <!-- High-Energy Video Play Triangle -->
-  <path d="M 204 148 C 204 136 218 130 228 137 L 374 243 C 383 250 383 262 374 269 L 228 375 C 218 382 204 376 204 364 Z" 
-        fill="url(#primaryLightGrad)" filter="url(#dropLightGlow)"/>
-
-  <!-- MiniMax High-Speed Lightning Bolt Core in Center -->
-  <path d="M 278 188 L 234 262 L 268 262 L 240 324 L 312 246 L 274 246 Z" 
-        fill="#ffffff" opacity="0.98"/>
-
-  <!-- Upper Soft Sheen -->
-  <path d="M 32 135 C 32 80 80 32 135 32 L 377 32 C 432 32 480 80 480 135 C 410 162 310 178 220 168 C 140 158 60 145 32 135 Z" 
-        fill="#ffffff" opacity="0.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
+  <rect width="24" height="24" rx="6.5" fill="#ffffff" stroke="#e4e4e7" stroke-width="0.8"/>
+  <!-- Pure Monochrome Black & White Video Logo (Light Variant) -->
+  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm6 2.5l6 3.5-6 3.5v-7z" 
+        fill="#09090b"/>
 </svg>

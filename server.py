@@ -40,10 +40,37 @@ from minimax_h3_bridge import (
     build_minimax_h3_prompt,
     COMFY_URL,
     COMFY_HOST,
-    SHARED_OUTPUT_PATH
+    SHARED_OUTPUT_PATH,
+    SHARED_INPUT_PATH
 )
 import re
 from downloader import start_model_download, get_download_status, cancel_download
+
+def cleanup_job_uploads(job_id: str, comfy_filename: Optional[str] = None):
+    """
+    Immediately deletes temporary raw and formatted uploaded images from uploads/
+    and any uploaded image from ComfyUI input directory once generation finishes.
+    """
+    # 1. Clean from uploads/ directory
+    for f in glob.glob(os.path.join(UPLOADS_DIR, f"{job_id}_*")):
+        try:
+            if os.path.isfile(f):
+                os.remove(f)
+        except Exception as e:
+            print(f"Warning: could not remove upload file {f}: {e}")
+
+    # 2. Clean from ComfyUI input directory
+    if os.path.exists(SHARED_INPUT_PATH):
+        patterns = [f"*{job_id}*"]
+        if comfy_filename:
+            patterns.append(os.path.basename(comfy_filename))
+        for pat in patterns:
+            for f in glob.glob(os.path.join(SHARED_INPUT_PATH, pat)):
+                try:
+                    if os.path.isfile(f):
+                        os.remove(f)
+                except Exception as e:
+                    print(f"Warning: could not remove ComfyUI input file {f}: {e}")
 
 def prepare_prompt_for_minimax(prompt: str) -> str:
     """
@@ -114,7 +141,8 @@ async def generate_video(
 ):
     job_id = str(uuid.uuid4())[:8]
 
-    if image is not None and getattr(image, "filename", None):
+    # Strict isolation: if generation_type is 't2v', NEVER process or attach any input image
+    if generation_type != "t2v" and image is not None and getattr(image, "filename", None):
         raw_img_path = os.path.join(UPLOADS_DIR, f"{job_id}_raw_{image.filename}")
         with open(raw_img_path, "wb") as f:
             shutil.copyfileobj(image.file, f)
@@ -124,7 +152,7 @@ async def generate_video(
         _, target_w, target_h = prepare_image_for_minimax(raw_img_path, formatted_img_path, aspect_ratio=aspect_ratio)
         aspect_desc = f"Original ({target_w}x{target_h})" if aspect_ratio in ("original", "auto", "native") else f"{aspect_ratio} ({target_w}x{target_h})"
     else:
-        # Pure Text-to-Video mode (No input image needed)
+        # Pure Text-to-Video mode (Zero input image reference or attachment)
         formatted_img_path = None
         if aspect_ratio == "9:16":
             target_w, target_h = 768, 1344
@@ -157,75 +185,78 @@ async def run_generation_task(job_id: str, formatted_image_path: Optional[str], 
     job = jobs[job_id]
     models_stat = check_models_status()
     comfy_stat = check_comfy_online()
+    comfy_filename = None
+    task_start_time = time.time()
 
-    # If models are not yet downloaded or user requested preview/demo mode
-    if not models_stat["all_ready"] or mode == "demo":
-        job["status"] = "processing"
-        job["step"] = f"Simulating MiniMax H3 8-step diffusion ({aspect_ratio})..."
-        job["progress"] = 15
-
-        # Render video with audio using FFmpeg & test frames
-        output_filename = f"MiniMaxH3_{job_id}_{aspect_ratio.replace(':', '_')}.mp4"
-        out_video_path = os.path.join(OUTPUTS_DIR, output_filename)
-
-        for step_i in range(1, 9):
-            await asyncio.sleep(0.4)
-            job["progress"] = int(15 + (step_i / 8) * 60)
-            job["step"] = f"Sampling latents (Turbo step {step_i}/8) - Generating Video & Stereo Audio..."
-
-        job["step"] = f"Decoding Video VAE & Audio VAE into final {aspect_ratio} MP4..."
-        job["progress"] = 85
-        await asyncio.sleep(0.5)
-
-        if formatted_image_path and os.path.exists(formatted_image_path):
-            cmd = [
-                "ffmpeg", "-y",
-                "-loop", "1",
-                "-i", formatted_image_path,
-                "-f", "lavfi",
-                "-i", f"sine=frequency=180:duration={duration}",
-                "-filter_complex", f"[0:v]scale={target_w}:{target_h},zoompan=z='min(zoom+0.0015,1.15)':d={duration*25}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={target_w}x{target_h}[vout]",
-                "-map", "[vout]",
-                "-map", "1:a",
-                "-c:v", "libx264",
-                "-pix_fmt", "yuv420p",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                "-t", str(duration),
-                "-movflags", "+faststart",
-                out_video_path
-            ]
-        else:
-            cmd = [
-                "ffmpeg", "-y",
-                "-f", "lavfi",
-                "-i", f"color=c=0x0a0b12:s={target_w}x{target_h}:d={duration}",
-                "-f", "lavfi",
-                "-i", f"sine=frequency=220:duration={duration}",
-                "-c:v", "libx264",
-                "-pix_fmt", "yuv420p",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                "-t", str(duration),
-                "-movflags", "+faststart",
-                out_video_path
-            ]
-
-        res = subprocess.run(cmd, capture_output=True, text=True)
-        if res.returncode == 0 and os.path.exists(out_video_path):
-            job["status"] = "completed"
-            job["progress"] = 100
-            job["step"] = "Generation complete! Ready to play & download."
-            job["video_url"] = f"/api/videos/{output_filename}"
-            job["filename"] = output_filename
-            return
-        else:
-            job["status"] = "failed"
-            job["error"] = f"FFmpeg error: {res.stderr[:200]}"
-            return
-
-    # Real ComfyUI execution when models are ready
     try:
+        # If models are not yet downloaded or user requested preview/demo mode
+        if not models_stat["all_ready"] or mode == "demo":
+            job["status"] = "processing"
+            job["step"] = f"Simulating MiniMax H3 8-step diffusion ({aspect_ratio})..."
+            job["progress"] = 15
+
+            # Render video with audio using FFmpeg & test frames
+            output_filename = f"MiniMaxH3_{job_id}_{aspect_ratio.replace(':', '_')}.mp4"
+            out_video_path = os.path.join(OUTPUTS_DIR, output_filename)
+
+            for step_i in range(1, 9):
+                await asyncio.sleep(0.4)
+                job["progress"] = int(15 + (step_i / 8) * 60)
+                job["step"] = f"Sampling latents (Turbo step {step_i}/8) - Generating Video & Stereo Audio..."
+
+            job["step"] = f"Decoding Video VAE & Audio VAE into final {aspect_ratio} MP4..."
+            job["progress"] = 85
+            await asyncio.sleep(0.5)
+
+            if formatted_image_path and os.path.exists(formatted_image_path):
+                cmd = [
+                    "ffmpeg", "-y",
+                    "-loop", "1",
+                    "-i", formatted_image_path,
+                    "-f", "lavfi",
+                    "-i", f"sine=frequency=180:duration={duration}",
+                    "-filter_complex", f"[0:v]scale={target_w}:{target_h},zoompan=z='min(zoom+0.0015,1.15)':d={duration*25}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={target_w}x{target_h}[vout]",
+                    "-map", "[vout]",
+                    "-map", "1:a",
+                    "-c:v", "libx264",
+                    "-pix_fmt", "yuv420p",
+                    "-c:a", "aac",
+                    "-b:a", "192k",
+                    "-t", str(duration),
+                    "-movflags", "+faststart",
+                    out_video_path
+                ]
+            else:
+                cmd = [
+                    "ffmpeg", "-y",
+                    "-f", "lavfi",
+                    "-i", f"color=c=0x0a0b12:s={target_w}x{target_h}:d={duration}",
+                    "-f", "lavfi",
+                    "-i", f"sine=frequency=220:duration={duration}",
+                    "-c:v", "libx264",
+                    "-pix_fmt", "yuv420p",
+                    "-c:a", "aac",
+                    "-b:a", "192k",
+                    "-t", str(duration),
+                    "-movflags", "+faststart",
+                    out_video_path
+                ]
+
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            if res.returncode == 0 and os.path.exists(out_video_path):
+                job["status"] = "completed"
+                job["progress"] = 100
+                job["step"] = "Generation complete! Ready to play & download."
+                job["video_url"] = f"/api/videos/{output_filename}"
+                job["filename"] = output_filename
+                job["generation_time"] = round(time.time() - task_start_time, 1)
+                return
+            else:
+                job["status"] = "failed"
+                job["error"] = f"FFmpeg error: {res.stderr[:200]}"
+                return
+
+        # Real ComfyUI execution when models are ready
         job["status"] = "processing"
         if formatted_image_path and os.path.exists(formatted_image_path):
             job["step"] = "Uploading image to ComfyUI..."
@@ -237,7 +268,16 @@ async def run_generation_task(job_id: str, formatted_image_path: Optional[str], 
             comfy_filename = None
 
         clean_prompt = prepare_prompt_for_minimax(prompt)
-        prompt_workflow = build_minimax_h3_prompt(comfy_filename, clean_prompt, duration_sec=duration, width=target_w, height=target_h)
+        mode_prefix = "T2V" if not comfy_filename else "I2V"
+        job_prefix = f"VidGen_{mode_prefix}_{job_id}"
+        prompt_workflow = build_minimax_h3_prompt(
+            comfy_filename, 
+            clean_prompt, 
+            duration_sec=duration, 
+            width=target_w, 
+            height=target_h,
+            filename_prefix=job_prefix
+        )
 
         client_id = str(uuid.uuid4())
         payload = {"prompt": prompt_workflow, "client_id": client_id}
@@ -250,6 +290,7 @@ async def run_generation_task(job_id: str, formatted_image_path: Optional[str], 
             raise Exception(f"ComfyUI prompt error: {r.text}")
 
         prompt_id = r.json().get("prompt_id")
+        job["prompt_id"] = prompt_id
         job["step"] = "ComfyUI pipeline queued. Waiting for worker..."
 
         # Node descriptions for accurate, real-time progress updates
@@ -297,24 +338,60 @@ async def run_generation_task(job_id: str, formatted_image_path: Optional[str], 
                                 job["progress"] = stage_pct
                             job["step"] = stage_text
 
-        # Fetch final video
+        # Fetch final video by querying ComfyUI's exact history for this prompt_id
         job["step"] = "Finalizing video delivery..."
         job["progress"] = 99
-        await asyncio.sleep(0.5)
 
-        # Search recursively for output video
-        matches = glob.glob(os.path.join(SHARED_OUTPUT_PATH, "**", "*VideoGen*.*"), recursive=True)
-        if not matches:
-            all_vids = glob.glob(os.path.join(SHARED_OUTPUT_PATH, "**", "*.mp4"), recursive=True) + glob.glob(os.path.join(SHARED_OUTPUT_PATH, "**", "*.webm"), recursive=True)
-            if all_vids:
-                matches = all_vids
+        exact_video_path = None
+        dest_filename = None
 
-        if matches:
-            latest_video = max(matches, key=os.path.getctime)
-            dest_filename = os.path.basename(latest_video)
+        # 1. Direct query of ComfyUI /history/{prompt_id} (retry up to 30 times with 0.5s pause to allow MP4 muxing to complete)
+        for _ in range(30):
+            try:
+                h_res = requests.get(f"{COMFY_URL}/history/{prompt_id}", timeout=2)
+                if h_res.status_code == 200:
+                    h_data = h_res.json()
+                    if prompt_id in h_data:
+                        prompt_entry = h_data[prompt_id]
+                        p_outputs = prompt_entry.get("outputs", {})
+                        for n_id, n_out in p_outputs.items():
+                            media_items = n_out.get("videos", []) + n_out.get("images", [])
+                            for itm in media_items:
+                                fn = itm.get("filename")
+                                sub = itm.get("subfolder", "")
+                                if fn and fn.lower().endswith((".mp4", ".webm", ".mkv")):
+                                    cand = os.path.join(SHARED_OUTPUT_PATH, sub, fn)
+                                    if os.path.exists(cand) and os.path.getsize(cand) > 1024:
+                                        exact_video_path = cand
+                                        dest_filename = fn
+                                        break
+                        if exact_video_path:
+                            break
+            except Exception:
+                pass
+            await asyncio.sleep(0.5)
+
+        # 2. Search on disk for this job's unique prefix (prevents returning previous videos)
+        if not exact_video_path:
+            job_matches = glob.glob(os.path.join(SHARED_OUTPUT_PATH, "**", f"*{job_id}*.*"), recursive=True)
+            if job_matches:
+                exact_video_path = max(job_matches, key=os.path.getmtime)
+                dest_filename = os.path.basename(exact_video_path)
+
+        # 3. Safe fallback: only check video files created/modified during this active job
+        if not exact_video_path:
+            recent_vids = [
+                p for p in glob.glob(os.path.join(SHARED_OUTPUT_PATH, "**", "*.*"), recursive=True)
+                if p.lower().endswith((".mp4", ".webm", ".mkv")) and os.path.getmtime(p) >= job["created_at"] - 3.0
+            ]
+            if recent_vids:
+                exact_video_path = max(recent_vids, key=os.path.getmtime)
+                dest_filename = os.path.basename(exact_video_path)
+
+        if exact_video_path and os.path.exists(exact_video_path):
             dest_path = os.path.join(OUTPUTS_DIR, dest_filename)
             try:
-                shutil.copy2(latest_video, dest_path)
+                shutil.copy2(exact_video_path, dest_path)
             except Exception:
                 pass
             job["status"] = "completed"
@@ -323,6 +400,7 @@ async def run_generation_task(job_id: str, formatted_image_path: Optional[str], 
             job["video_url"] = f"/api/videos/{dest_filename}"
             job["filename"] = dest_filename
             job["prompt_id"] = prompt_id
+            job["generation_time"] = round(time.time() - task_start_time, 1)
 
             # Free temporary cache from RAM, but KEEP model weights resident in VRAM for instant subsequent generations!
             try:
@@ -336,6 +414,10 @@ async def run_generation_task(job_id: str, formatted_image_path: Optional[str], 
         job["status"] = "failed"
         job["error"] = str(e)
         job["step"] = f"Error: {e}"
+    finally:
+        # Immediately delete temporary raw and formatted uploaded images from uploads/
+        # and delete temporary uploaded image from ComfyUI input folder
+        cleanup_job_uploads(job_id, comfy_filename)
 
 @app.get("/api/progress/{job_id}")
 async def get_progress(job_id: str):
@@ -395,6 +477,29 @@ async def get_history():
                             if len(inputs["prompt"]) > len(prompt_txt):
                                 prompt_txt = inputs["prompt"]
 
+                # Extract exact ComfyUI generation execution time from status messages
+                start_ts = None
+                end_ts = None
+                for msg in val.get("status", {}).get("messages", []):
+                    if isinstance(msg, (list, tuple)) and len(msg) >= 2:
+                        m_type = msg[0]
+                        m_data = msg[1] if isinstance(msg[1], dict) else {}
+                        if m_type == "execution_start":
+                            start_ts = m_data.get("timestamp")
+                        elif m_type == "execution_success":
+                            end_ts = m_data.get("timestamp")
+
+                gen_time_sec = None
+                gen_time_str = None
+                if start_ts and end_ts and end_ts > start_ts:
+                    gen_time_sec = round((end_ts - start_ts) / 1000.0, 1)
+                    if gen_time_sec >= 60:
+                        m = int(gen_time_sec // 60)
+                        s = int(gen_time_sec % 60)
+                        gen_time_str = f"{m}m {s}s"
+                    else:
+                        gen_time_str = f"{gen_time_sec}s"
+
                 for node_id, node_out in outputs.items():
                     items = node_out.get("images", []) + node_out.get("videos", [])
                     for itm in items:
@@ -405,7 +510,9 @@ async def get_history():
                             file_to_info[fn] = {
                                 "prompt_id": pid,
                                 "prompt": prompt_txt,
-                                "duration": round(float(dur), 1) if dur else None
+                                "duration": round(float(dur), 1) if dur else None,
+                                "generation_time": gen_time_sec,
+                                "generation_time_str": gen_time_str
                             }
     except Exception:
         pass
@@ -437,14 +544,30 @@ async def get_history():
             if p_text:
                 p_text = p_text.replace(" Audio: silent, quiet natural ambient background, no speech, no vocals, no music.", "").strip()
 
+            gen_time = info.get("generation_time")
+            gen_time_str = info.get("generation_time_str")
+
+            # Fallback to in-memory jobs if not found in ComfyUI history
+            if not gen_time:
+                for j_id, j_data in jobs.items():
+                    if j_data.get("filename") == fn and j_data.get("generation_time"):
+                        gen_time = j_data.get("generation_time")
+                        if gen_time >= 60:
+                            gen_time_str = f"{int(gen_time // 60)}m {int(gen_time % 60)}s"
+                        else:
+                            gen_time_str = f"{gen_time}s"
+                        break
+
             history.append({
                 "filename": fn,
                 "url": f"/api/videos/{fn}",
                 "prompt_id": info.get("prompt_id"),
                 "prompt": p_text if p_text else None,
                 "duration": info.get("duration"),
+                "generation_time": gen_time,
+                "generation_time_str": gen_time_str or (f"{gen_time}s" if gen_time else None),
                 "size_mb": round(fsize / (1024 * 1024), 2),
-                "date": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(mtime)),
+                "date": time.strftime("%Y-%m-%d %I:%M %p", time.localtime(mtime)),
                 "mtime": mtime
             })
         except Exception:
@@ -486,14 +609,26 @@ async def delete_history_item(request: Request):
         except Exception:
             pass
 
-    # 1. Delete from ComfyUI history list
+    # 1. Delete from ComfyUI history & queue across standard and /api/ endpoints
     if prompt_id:
+        for ep in [f"{COMFY_URL}/history", f"{COMFY_URL}/api/history"]:
+            try:
+                r_del = requests.post(ep, json={"delete": [prompt_id]}, timeout=3)
+                if r_del.status_code == 200:
+                    deleted_comfy = True
+            except Exception as e:
+                print(f"Error deleting from ComfyUI history at {ep}: {e}")
+
+        for q_ep in [f"{COMFY_URL}/queue", f"{COMFY_URL}/api/queue"]:
+            try:
+                requests.post(q_ep, json={"delete": [prompt_id]}, timeout=3)
+            except Exception:
+                pass
+
         try:
-            r_del = requests.post(f"{COMFY_URL}/history", json={"delete": [prompt_id]}, timeout=5)
-            if r_del.status_code == 200:
-                deleted_comfy = True
-        except Exception as e:
-            print(f"Error deleting from ComfyUI history: {e}")
+            requests.post(f"{COMFY_URL}/interrupt", json={"prompt_id": prompt_id}, timeout=2)
+        except Exception:
+            pass
 
     # 2. Delete file from disk in both OUTPUTS_DIR and SHARED_OUTPUT_PATH
     deleted_files = []
@@ -524,6 +659,11 @@ async def delete_history_item(request: Request):
                 except Exception:
                     pass
 
+        # Also purge any residual uploaded image matching this video's job ID
+        m_job = re.search(r"(?:VidGen_[IT]2V_|MiniMaxH3_)([a-f0-9]{8})", base_name)
+        if m_job:
+            cleanup_job_uploads(m_job.group(1))
+
     return {
         "status": "deleted",
         "filename": filename,
@@ -534,14 +674,21 @@ async def delete_history_item(request: Request):
 
 @app.post("/api/history/clear")
 async def clear_history():
-    # 1. Wipe ComfyUI history & queue
+    # 1. Wipe ComfyUI history & queue across standard and /api/ paths
     comfy_history_cleared = False
-    try:
-        r_hist = requests.post(f"{COMFY_URL}/history", json={"clear": True}, timeout=5)
-        r_q = requests.post(f"{COMFY_URL}/queue", json={"clear": True}, timeout=5)
-        comfy_history_cleared = (r_hist.status_code == 200)
-    except Exception as e:
-        print(f"Error clearing ComfyUI history: {e}")
+    for ep in [f"{COMFY_URL}/history", f"{COMFY_URL}/api/history"]:
+        try:
+            r_hist = requests.post(ep, json={"clear": True}, timeout=3)
+            if r_hist.status_code == 200:
+                comfy_history_cleared = True
+        except Exception as e:
+            print(f"Error clearing ComfyUI history at {ep}: {e}")
+
+    for q_ep in [f"{COMFY_URL}/queue", f"{COMFY_URL}/api/queue"]:
+        try:
+            requests.post(q_ep, json={"clear": True}, timeout=3)
+        except Exception:
+            pass
 
     # 2. Clear outputs directory
     for f in glob.glob(os.path.join(OUTPUTS_DIR, "*.*")):
@@ -551,12 +698,30 @@ async def clear_history():
             except Exception:
                 pass
 
-    # 3. Clear VideoGen videos from ComfyUI shared output
-    for f in glob.glob(os.path.join(SHARED_OUTPUT_PATH, "**", "*VideoGen*.*"), recursive=True):
+    # 3. Clear VidGen and VideoGen videos from ComfyUI shared output
+    for pattern in ["*VidGen*.*", "*VideoGen*.*"]:
+        for f in glob.glob(os.path.join(SHARED_OUTPUT_PATH, "**", pattern), recursive=True):
+            try:
+                os.remove(f)
+            except Exception:
+                pass
+
+    # 4. Clear all temporary uploaded images from uploads/
+    for f in glob.glob(os.path.join(UPLOADS_DIR, "*.*")):
         try:
-            os.remove(f)
+            if os.path.isfile(f) and not f.endswith(".gitkeep"):
+                os.remove(f)
         except Exception:
             pass
+
+    # 5. Clear all temporary videogen_* images from ComfyUI input directory
+    if os.path.exists(SHARED_INPUT_PATH):
+        for f in glob.glob(os.path.join(SHARED_INPUT_PATH, "videogen_*")):
+            try:
+                if os.path.isfile(f):
+                    os.remove(f)
+            except Exception:
+                pass
 
     jobs.clear()
     return {"status": "cleared", "comfy_cleared": comfy_history_cleared}

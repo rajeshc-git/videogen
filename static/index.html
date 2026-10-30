@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default" id="metaStatusBar">
-  <meta name="apple-mobile-web-app-title" content="VideoGen">
-  <meta name="application-name" content="VideoGen Studio">
-  <!-- Dynamic Theme Color for Mobile Homescreen & Status Bar (White in Light Mode, Black in Dark Mode) -->
-  <meta name="theme-color" content="#ffffff" id="metaThemeColor">
+  <meta name="apple-mobile-web-app-title" content="VidGen">
+  <meta name="application-name" content="VidGen">
+  <!-- Dynamic Theme Color for Mobile Homescreen & Status Bar (Cream Mesh in Light Mode, Black in Dark Mode) -->
+  <meta name="theme-color" content="#faf7f2" id="metaThemeColor">
 
   <!-- Immediate Head Script for Mobile Status Bar & Theme Matching -->
   <script>
@@ -22,39 +22,39 @@
           document.documentElement.classList.remove('dark');
         }
         var meta = document.getElementById('metaThemeColor');
-        if (meta) meta.setAttribute('content', isDark ? '#000000' : '#ffffff');
+        if (meta) meta.setAttribute('content', isDark ? '#08080a' : '#faf7f2');
         var bar = document.getElementById('metaStatusBar');
         if (bar) bar.setAttribute('content', isDark ? 'black' : 'default');
       } catch (e) {}
     })();
   </script>
 
-  <title>VideoGen Studio - MiniMax H3 (Native Video & Audio)</title>
+  <title>VidGen</title>
   <meta name="description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with synchronized native stereo audio on NVIDIA RTX 5080.">
 
-  <!-- Favicon & App Touch Icons -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" id="appFavicon">
-  <link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="alternate icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="shortcut icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <!-- Favicon & App Touch Icons (Clean Monochrome Video Logo) -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4" id="appFavicon">
+  <link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=4">
+  <link rel="alternate icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=4">
+  <link rel="shortcut icon" href="/favicon.ico?v=4">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png?v=4">
+  <link rel="manifest" href="/site.webmanifest?v=4">
 
   <!-- Open Graph & Social Share Hero Metadata -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="VideoGen Studio">
-  <meta property="og:title" content="VideoGen Studio - MiniMax H3 Video & Audio AI">
+  <meta property="og:site_name" content="VidGen">
+  <meta property="og:title" content="VidGen - MiniMax H3 Video & Audio AI">
   <meta property="og:description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with synchronized native stereo audio.">
   <meta property="og:image" content="/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="VideoGen Studio - MiniMax H3 AI Hero">
+  <meta property="og:image:alt" content="VidGen - MiniMax H3 AI Hero">
 
   <!-- Twitter / X Social Share Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="VideoGen Studio - MiniMax H3 Video & Audio AI">
+  <meta name="twitter:title" content="VidGen - MiniMax H3 Video & Audio AI">
   <meta name="twitter:description" content="Unlimited Image-to-Video generation powered by MiniMax H3 with synchronized native stereo audio.">
   <meta name="twitter:image" content="/og-image.png">
 
@@ -109,6 +109,31 @@
       min-height: calc(4rem + env(safe-area-inset-top, 0px));
     }
 
+    /* Eye-pleasing subtle grid mesh background */
+    body {
+      background-color: #faf7f2;
+      background-image: 
+        radial-gradient(circle at 85% 15%, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0) 45%),
+        radial-gradient(circle at 15% 75%, rgba(251, 146, 60, 0.08) 0%, rgba(251, 146, 60, 0) 45%),
+        linear-gradient(to right, rgba(234, 88, 12, 0.065) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(234, 88, 12, 0.065) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      background-position: 0 0, 0 0, 0 0, 0 0;
+      background-attachment: fixed;
+    }
+
+    html.dark body {
+      background-color: #08080a;
+      background-image: 
+        radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.09) 0%, rgba(249, 115, 22, 0) 48%),
+        radial-gradient(circle at 20% 80%, rgba(234, 88, 12, 0.05) 0%, rgba(234, 88, 12, 0) 45%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      background-position: 0 0, 0 0, 0 0, 0 0;
+      background-attachment: fixed;
+    }
+
     /* Fluid smooth sidebar drawer animation */
     .drawer-backdrop-enter-active,
     .drawer-backdrop-leave-active {
@@ -129,20 +154,20 @@
     }
   </style>
 </head>
-<body class="h-full bg-neutral-50 text-neutral-900 dark:bg-black dark:text-neutral-100 transition-colors duration-200 antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+<body class="h-full text-neutral-900 dark:text-neutral-100 transition-colors duration-200 antialiased selection:bg-orange-500 selection:text-white">
 
   <!-- Vue App Root Mount -->
   <div id="app" v-cloak class="min-h-full flex flex-col relative overflow-x-hidden">
 
-    <!-- App Header Navbar (Pure Monochrome Black & White with Center Mode Badge & SVG Hamburger Menu) -->
-    <header class="sticky top-0 z-50 glass-clean bg-white/90 dark:bg-neutral-950/90 border-b border-neutral-200 dark:border-neutral-800 px-3 sm:px-8 h-16 flex items-center justify-between gap-2 shadow-sm relative">
+    <!-- App Header Navbar (Warm Orange Theme in Light Mode & Clean Dark Mode) -->
+    <header class="sticky top-0 z-50 glass-clean bg-white/85 dark:bg-neutral-950/85 border-b border-orange-200/50 dark:border-neutral-800 px-3 sm:px-8 h-16 flex items-center justify-between gap-2 shadow-sm relative">
       <div class="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-10">
-        <!-- SVG Hamburger Menu Button: High-quality monochrome icon that toggles Studio Drawer -->
+        <!-- SVG Hamburger Menu Button: High-quality icon that toggles Studio Drawer -->
         <button 
           type="button" 
           @click="studioDrawerOpen = !studioDrawerOpen" 
           class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center flex-shrink-0 group hover:scale-105 active:scale-95 transition-all border cursor-pointer shadow-sm" 
-          :class="themeChoice === 'light' ? 'bg-white border-neutral-300 text-black hover:bg-neutral-100' : 'bg-neutral-900 border-neutral-800 text-white hover:bg-neutral-800'" 
+          :class="themeChoice === 'light' ? 'bg-white/90 border-neutral-300 text-black hover:border-orange-500 hover:text-orange-600' : 'bg-neutral-900 border-neutral-800 text-white hover:bg-neutral-800'" 
           title="Open Studio Menu">
           <svg class="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3.5" y1="6.5" x2="20.5" y2="6.5"></line>
@@ -151,23 +176,52 @@
           </svg>
         </button>
         <div>
-          <!-- Title: VidGen on both mobile and desktop -->
+          <!-- Title: VidGen with vibrant orange brand accent -->
           <h1 class="font-display font-extrabold text-base sm:text-lg leading-tight tracking-tight text-black dark:text-white">
-            VidGen
+            Vid<span class="text-orange-500">Gen</span>
           </h1>
           <!-- Subheader: Hidden on mobile -->
           <div class="hidden sm:block text-[11px] font-mono font-medium text-neutral-500 dark:text-neutral-400">
-            MiniMax H3 Native Audio
+            MiniMax H3 Engine
           </div>
         </div>
       </div>
 
-      <!-- Center Mode Badge (Centered on desktop, visible and centered on mobile if space permits) -->
-      <div class="absolute left-1/2 -translate-x-1/2 pointer-events-none flex items-center justify-center">
-        <span class="pointer-events-auto text-[11px] sm:text-xs font-mono font-bold px-3 py-1 rounded-full border border-transparent bg-black text-white dark:bg-white dark:text-black shadow-sm transition-all whitespace-nowrap">
-          {{ currentStudioMode === 't2v' ? 'Text-to-Video' : 'Image-to-Video' }}
-        </span>
+      <!-- Center Mode Banner Sign (Image to Video & Text to Video Switcher, Hidden on Mobile) -->
+      <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center pointer-events-none z-20">
+        <div class="pointer-events-auto inline-flex items-center p-1 rounded-full bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-700/80 shadow-sm backdrop-blur-md">
+          <!-- Image to Video Tab -->
+          <button 
+            type="button" 
+            @click="switchMode('i2v')" 
+            :class="[
+              'px-3.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap',
+              currentStudioMode === 'i2v'
+                ? 'bg-orange-500 text-white dark:bg-white dark:text-black shadow-sm'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-orange-600 dark:hover:text-white'
+            ]"
+            title="Image to Video Mode">
+            <span>🖼️</span>
+            <span>Image to Video</span>
+          </button>
+
+          <!-- Text to Video Tab -->
+          <button 
+            type="button" 
+            @click="switchMode('t2v')" 
+            :class="[
+              'px-3.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap',
+              currentStudioMode === 't2v'
+                ? 'bg-orange-500 text-white dark:bg-white dark:text-black shadow-sm'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-orange-600 dark:hover:text-white'
+            ]"
+            title="Text to Video Mode">
+            <span>✍️</span>
+            <span>Text to Video</span>
+          </button>
+        </div>
       </div>
+
 
       <!-- Header Actions: Share + Completion Alert Toggle + Theme Toggler (Compact on Mobile) -->
       <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 z-10">
@@ -175,8 +229,8 @@
         <button 
           type="button" 
           @click="openShareModal" 
-          class="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm"
-          title="Share VideoGen Studio">
+          class="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-neutral-300 dark:border-neutral-700 bg-white/90 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 shadow-sm hover:border-orange-400"
+          title="Share VidGen">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="18" cy="5" r="3"></circle>
             <circle cx="6" cy="12" r="3"></circle>
@@ -191,7 +245,7 @@
         <button 
           type="button" 
           @click="toggleNotificationPermission" 
-          class="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-all border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm"
+          class="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-all border border-neutral-300 dark:border-neutral-700 bg-white/90 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 shadow-sm hover:border-orange-400"
           :title="notificationsEnabled ? 'Completion alerts active' : 'Click to enable alerts'">
           <span>{{ notificationsEnabled ? '🔔' : '🔕' }}</span>
           <span class="hidden sm:inline">{{ notificationsEnabled ? 'Alerts' : 'Mute' }}</span>
@@ -202,7 +256,7 @@
           <button 
             type="button" 
             @click="setTheme('light')" 
-            :class="['px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all', themeChoice === 'light' ? 'bg-black text-white shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-black']"
+            :class="['px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all', themeChoice === 'light' ? 'bg-orange-500 text-white shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white']"
             title="Light Mode">
             <span>☀️</span>
             <span class="hidden sm:inline">Light</span>
@@ -210,7 +264,7 @@
           <button 
             type="button" 
             @click="setTheme('dark')" 
-            :class="['px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all', themeChoice === 'dark' ? 'bg-white text-black shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-white']"
+            :class="['px-2 sm:px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all', themeChoice === 'dark' ? 'bg-white text-black shadow-sm' : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white']"
             title="Dark Mode">
             <span>🌙</span>
             <span class="hidden sm:inline">Dark</span>
@@ -238,16 +292,16 @@
           <!-- Drawer Header -->
           <div class="p-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <!-- Pure Monochrome Black & White Video Icon (No Gradient) -->
+              <!-- Brand Video Icon -->
               <div class="w-8 h-8 rounded-xl flex items-center justify-center border shadow-sm transition-colors"
-                :class="themeChoice === 'light' ? 'bg-black text-white border-black' : 'bg-white text-black border-white'">
+                :class="themeChoice === 'light' ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-black border-white'">
                 <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm6 2.5l6 3.5-6 3.5v-7z"/>
                 </svg>
               </div>
               <div>
-                <h3 class="font-display font-extrabold text-sm text-black dark:text-white">VidGen</h3>
-                <p class="text-[11px] font-mono text-neutral-500">MiniMax H3 Engine</p>
+                <h3 class="font-display font-extrabold text-sm text-black dark:text-white">Vid<span class="text-orange-500">Gen</span></h3>
+                <p class="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">MiniMax H3 Engine</p>
               </div>
             </div>
             <button 
@@ -271,22 +325,22 @@
             :class="[
               'w-full text-left p-3.5 rounded-2xl border transition-all flex items-start gap-3 relative cursor-pointer',
               currentStudioMode === 'i2v'
-                ? 'border-black dark:border-white bg-neutral-100 dark:bg-neutral-900 ring-2 ring-black dark:ring-white shadow-sm'
-                : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-neutral-900/50'
+                ? 'border-orange-500 dark:border-white bg-orange-50/70 dark:bg-neutral-900 ring-2 ring-orange-500 dark:ring-white shadow-sm'
+                : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 hover:bg-orange-50/30 dark:hover:bg-neutral-900/50'
             ]">
-            <div class="w-9 h-9 rounded-xl bg-neutral-200/80 dark:bg-neutral-800 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
+            <div class="w-9 h-9 rounded-xl bg-orange-100/70 dark:bg-neutral-800 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
               🖼️
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <strong class="font-display font-bold text-sm text-black dark:text-white">Image to Video</strong>
-                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold">Default</span>
+                <span class="text-[10px] font-display font-bold px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 shadow-xs uppercase tracking-wider">Default</span>
               </div>
               <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">
                 Animate your photo with camera motion and native audio.
               </p>
             </div>
-            <span v-if="currentStudioMode === 'i2v'" class="text-black dark:text-white font-bold text-sm">✓</span>
+            <span v-if="currentStudioMode === 'i2v'" class="text-orange-500 dark:text-white font-bold text-sm">✓</span>
           </button>
 
           <!-- Option 2: Text to Video -->
@@ -296,22 +350,22 @@
             :class="[
               'w-full text-left p-3.5 rounded-2xl border transition-all flex items-start gap-3 relative cursor-pointer',
               currentStudioMode === 't2v'
-                ? 'border-black dark:border-white bg-neutral-100 dark:bg-neutral-900 ring-2 ring-black dark:ring-white shadow-sm'
-                : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-neutral-900/50'
+                ? 'border-orange-500 dark:border-white bg-orange-50/70 dark:bg-neutral-900 ring-2 ring-orange-500 dark:ring-white shadow-sm'
+                : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 hover:bg-orange-50/30 dark:hover:bg-neutral-900/50'
             ]">
-            <div class="w-9 h-9 rounded-xl bg-neutral-200/80 dark:bg-neutral-800 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
+            <div class="w-9 h-9 rounded-xl bg-orange-100/70 dark:bg-neutral-800 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
               ✍️
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <strong class="font-display font-bold text-sm text-black dark:text-white">Text to Video</strong>
-                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold">New</span>
+                <span class="text-[10px] font-display font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white border border-orange-500/80 shadow-xs shadow-orange-500/30 uppercase tracking-wider">New</span>
               </div>
               <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-snug">
                 Full text prompt generation with aspect ratio & native synchronized sound.
               </p>
             </div>
-            <span v-if="currentStudioMode === 't2v'" class="text-black dark:text-white font-bold text-sm">✓</span>
+            <span v-if="currentStudioMode === 't2v'" class="text-orange-500 dark:text-white font-bold text-sm">✓</span>
           </button>
         </div>
 
@@ -329,20 +383,20 @@
     <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
       
       <!-- Video Output Modal / In-Page Ready Banner (Only shown when Video is Ready or Generating) -->
-      <section v-if="isGenerating || videoUrl" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark transition-all">
+      <section v-if="isGenerating || videoUrl" class="rounded-3xl p-6 sm:p-8 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border border-orange-200/50 dark:border-neutral-800 shadow-[0_4px_25px_-2px_rgba(249,115,22,0.06),0_2px_8px_rgba(0,0,0,0.02)] dark:shadow-card-dark transition-all">
         
         <!-- Generating State (with Pulsing Hero Icon & Radar Glow) -->
         <div v-if="isGenerating" class="py-8 flex flex-col items-center justify-center text-center space-y-4">
           <div class="relative w-24 h-24 flex items-center justify-center">
             <!-- Pulsing Ambient Radar Glow -->
-            <div class="absolute inset-0 rounded-3xl bg-indigo-500/20 dark:bg-indigo-400/20 animate-ping opacity-60"></div>
+            <div class="absolute inset-0 rounded-3xl bg-orange-500/20 dark:bg-orange-400/20 animate-ping opacity-60"></div>
             <!-- Spinning Perimeter Ring -->
-            <div class="absolute inset-0 rounded-3xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 border-t-indigo-500 dark:border-t-indigo-400 animate-spin"></div>
+            <div class="absolute inset-0 rounded-3xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 border-t-orange-500 dark:border-t-orange-400 animate-spin"></div>
             <!-- Centered Branded Hero Emblem with Progress Badge -->
             <div class="relative w-16 h-16 rounded-2xl bg-black text-white dark:bg-neutral-900 border border-neutral-700/60 shadow-xl flex items-center justify-center overflow-hidden p-2">
               <img src="/favicon.svg" alt="Generating..." class="w-full h-full object-contain">
             </div>
-            <span class="absolute -bottom-2 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-extrabold bg-black text-white dark:bg-white dark:text-black shadow-md border border-neutral-700">
+            <span class="absolute -bottom-2 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-extrabold bg-orange-500 text-white dark:bg-white dark:text-black shadow-md border border-orange-400/60 dark:border-neutral-700">
               {{ jobProgress }}%
             </span>
           </div>
@@ -351,7 +405,7 @@
             <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ jobStepDetail }}</p>
           </div>
           <div class="w-full max-w-md bg-neutral-100 dark:bg-neutral-900 rounded-full h-2 overflow-hidden border border-neutral-200 dark:border-neutral-800">
-            <div class="bg-black dark:bg-white h-full transition-all duration-300" :style="{ width: jobProgress + '%' }"></div>
+            <div class="bg-orange-500 dark:bg-white h-full transition-all duration-300" :style="{ width: jobProgress + '%' }"></div>
           </div>
         </div>
 
@@ -361,7 +415,7 @@
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
               <h3 class="font-display font-bold text-lg text-black dark:text-white">Your Video is Ready</h3>
-              <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 font-bold">
+              <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-orange-50 dark:bg-neutral-900 border border-orange-200 dark:border-neutral-800 font-bold text-orange-700 dark:text-orange-300">
                 {{ activeAspectRatioDisplay }}
               </span>
             </div>
@@ -394,7 +448,7 @@
             <a 
               :href="'/api/download/' + downloadFilename" 
               :download="downloadFilename"
-              class="flex-1 w-full py-4 px-6 rounded-2xl bg-black text-white dark:bg-white dark:text-black font-display font-bold text-base flex items-center justify-center gap-2.5 shadow-btn-black dark:shadow-btn-white hover:opacity-90 active:scale-[0.99] transition-all">
+              class="flex-1 w-full py-4 px-6 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white dark:bg-white dark:text-black dark:hover:bg-neutral-100 font-display font-bold text-base flex items-center justify-center gap-2.5 shadow-[0_6px_22px_-2px_rgba(249,115,22,0.4)] dark:shadow-btn-white active:scale-[0.99] transition-all">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -415,12 +469,12 @@
       </section>
 
       <!-- Main Creation Studio (Card 1: Upload & Aspect Ratio) - Image to Video Mode -->
-      <section v-if="currentStudioMode === 'i2v'" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark space-y-6">
+      <section v-if="currentStudioMode === 'i2v'" class="rounded-3xl p-6 sm:p-8 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border border-orange-200/50 dark:border-neutral-800 shadow-[0_4px_25px_-2px_rgba(249,115,22,0.06),0_2px_8px_rgba(0,0,0,0.02)] dark:shadow-card-dark space-y-6">
         
         <!-- Step 1: Upload Source Image -->
         <div>
           <div class="flex items-center gap-3 mb-4">
-            <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">1</span>
+            <span class="w-7 h-7 rounded-xl bg-orange-500 text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm shadow-orange-500/25">1</span>
             <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Upload Image</h2>
           </div>
 
@@ -432,14 +486,14 @@
             @click="triggerFileInput"
             :class="[
               'relative min-h-[180px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center p-6 cursor-pointer overflow-hidden transition-all duration-200',
-              isDragging ? 'border-black dark:border-white bg-neutral-100 dark:bg-neutral-900' : 'border-neutral-300 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 hover:border-black dark:hover:border-white'
+              isDragging ? 'border-orange-500 dark:border-white bg-orange-50/70 dark:bg-neutral-900' : 'border-neutral-300 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/40 hover:border-orange-400 dark:hover:border-white'
             ]">
             
             <input type="file" ref="fileInput" @change="onFileSelected" accept="image/*" class="hidden" />
 
             <!-- Idle Dropzone -->
             <div v-if="!imagePreviewUrl" class="space-y-3 pointer-events-none">
-              <div class="w-12 h-12 rounded-full bg-neutral-200/80 dark:bg-neutral-800 text-black dark:text-white flex items-center justify-center mx-auto shadow-sm">
+              <div class="w-12 h-12 rounded-full bg-orange-100/80 dark:bg-neutral-800 text-orange-600 dark:text-white flex items-center justify-center mx-auto shadow-sm">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                   <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -456,7 +510,7 @@
             <div v-else class="relative w-full flex flex-col items-center">
               <img :src="imagePreviewUrl" alt="Source Preview" class="max-h-60 rounded-xl object-contain shadow-md" />
               <div class="absolute top-2 right-2 flex items-center gap-2">
-                <span class="bg-black text-white dark:bg-white dark:text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-md">✓ Ready</span>
+                <span class="bg-orange-500 text-white dark:bg-white dark:text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-md">✓ Ready</span>
                 <button type="button" @click.stop="triggerFileInput" class="bg-black/75 hover:bg-black text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/20">Change</button>
               </div>
             </div>
@@ -475,19 +529,19 @@
               type="button" 
               @click="selectedAspectRatio = 'original'"
               :class="[
-                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
                 selectedAspectRatio === 'original' 
-                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
-                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+                  ? 'border-neutral-400 dark:border-neutral-600 bg-neutral-100/80 dark:bg-neutral-800/60 ring-2 ring-neutral-300 dark:ring-neutral-700 font-bold shadow-sm' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 hover:border-neutral-300 dark:hover:border-neutral-700'
               ]">
-              <div class="w-8 h-8 rounded-lg border-2 border-dashed flex items-center justify-center text-xs font-bold" :class="selectedAspectRatio === 'original' ? 'border-black dark:border-white bg-black text-white dark:bg-white dark:text-black' : 'border-neutral-400 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400'">
+              <div class="w-8 h-8 rounded-lg border-2 border-dashed flex items-center justify-center text-xs font-bold transition-colors" :class="selectedAspectRatio === 'original' ? 'border-orange-500 bg-orange-500 text-white shadow-sm shadow-orange-500/25' : 'border-neutral-400 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400'">
                 ⚡
               </div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">Original (Auto)</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">Native (No Stretch)</span>
               </div>
-              <span v-if="selectedAspectRatio === 'original'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="selectedAspectRatio === 'original'" class="absolute top-1.5 right-2 text-orange-500 dark:text-orange-400 text-xs font-bold">✓</span>
             </button>
 
             <!-- 9:16 Vertical Card -->
@@ -495,17 +549,17 @@
               type="button" 
               @click="selectedAspectRatio = '9:16'"
               :class="[
-                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
                 selectedAspectRatio === '9:16' 
-                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
-                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+                  ? 'border-neutral-400 dark:border-neutral-600 bg-neutral-100/80 dark:bg-neutral-800/60 ring-2 ring-neutral-300 dark:ring-neutral-700 font-bold shadow-sm' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 hover:border-neutral-300 dark:hover:border-neutral-700'
               ]">
-              <div class="w-5 h-8 border-2 rounded-md" :class="selectedAspectRatio === '9:16' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-5 h-8 border-2 rounded-md transition-colors" :class="selectedAspectRatio === '9:16' ? 'border-orange-500 bg-orange-500 shadow-sm shadow-orange-500/25' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">9:16 Vertical</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">768 × 1344</span>
               </div>
-              <span v-if="selectedAspectRatio === '9:16'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="selectedAspectRatio === '9:16'" class="absolute top-1.5 right-2 text-orange-500 dark:text-orange-400 text-xs font-bold">✓</span>
             </button>
 
             <!-- 16:9 Landscape Card -->
@@ -513,17 +567,17 @@
               type="button" 
               @click="selectedAspectRatio = '16:9'"
               :class="[
-                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
                 selectedAspectRatio === '16:9' 
-                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
-                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+                  ? 'border-neutral-400 dark:border-neutral-600 bg-neutral-100/80 dark:bg-neutral-800/60 ring-2 ring-neutral-300 dark:ring-neutral-700 font-bold shadow-sm' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 hover:border-neutral-300 dark:hover:border-neutral-700'
               ]">
-              <div class="w-8 h-5 border-2 rounded-md" :class="selectedAspectRatio === '16:9' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-8 h-5 border-2 rounded-md transition-colors" :class="selectedAspectRatio === '16:9' ? 'border-orange-500 bg-orange-500 shadow-sm shadow-orange-500/25' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">16:9 Landscape</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">1344 × 768</span>
               </div>
-              <span v-if="selectedAspectRatio === '16:9'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="selectedAspectRatio === '16:9'" class="absolute top-1.5 right-2 text-orange-500 dark:text-orange-400 text-xs font-bold">✓</span>
             </button>
 
             <!-- 1:1 Square Card -->
@@ -531,17 +585,17 @@
               type="button" 
               @click="selectedAspectRatio = '1:1'"
               :class="[
-                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative',
+                'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
                 selectedAspectRatio === '1:1' 
-                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
-                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+                  ? 'border-neutral-400 dark:border-neutral-600 bg-neutral-100/80 dark:bg-neutral-800/60 ring-2 ring-neutral-300 dark:ring-neutral-700 font-bold shadow-sm' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 hover:border-neutral-300 dark:hover:border-neutral-700'
               ]">
-              <div class="w-6 h-6 border-2 rounded-md" :class="selectedAspectRatio === '1:1' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-6 h-6 border-2 rounded-md transition-colors" :class="selectedAspectRatio === '1:1' ? 'border-orange-500 bg-orange-500 shadow-sm shadow-orange-500/25' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">1:1 Square</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">960 × 960</span>
               </div>
-              <span v-if="selectedAspectRatio === '1:1'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="selectedAspectRatio === '1:1'" class="absolute top-1.5 right-2 text-orange-500 dark:text-orange-400 text-xs font-bold">✓</span>
             </button>
           </div>
         </div>
@@ -550,7 +604,7 @@
         <div class="space-y-4 pt-2 border-t border-neutral-200 dark:border-neutral-800">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">2</span>
+              <span class="w-7 h-7 rounded-xl bg-orange-500 text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm shadow-orange-500/25">2</span>
               <div>
                 <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Prompt</h2>
                 <p class="text-xs text-neutral-500 dark:text-neutral-400">Describe the video & audio</p>
@@ -561,14 +615,14 @@
             <button 
               type="button" 
               @click="soundModalOpen = !soundModalOpen" 
-              class="text-xs font-bold px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 flex items-center gap-1.5 transition-all shadow-sm">
+              class="text-xs font-bold px-3 py-1.5 rounded-full bg-white/90 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-black dark:text-white border border-neutral-300 dark:border-neutral-700 flex items-center gap-1.5 transition-all shadow-sm hover:border-orange-400">
               <span>🎵 Sound</span>
               <span class="text-[10px]">{{ soundModalOpen ? '▲' : '▼' }}</span>
             </button>
           </div>
 
           <!-- Sound Presets Drawer (Separate, Unobtrusive) -->
-          <div v-if="soundModalOpen" class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 space-y-3">
+          <div v-if="soundModalOpen" class="p-4 rounded-2xl bg-orange-50/40 dark:bg-neutral-900 border border-orange-200/70 dark:border-neutral-700 space-y-3">
             <div class="flex items-center justify-between text-xs font-bold text-black dark:text-white">
               <span>Select a preset to insert into prompt:</span>
               <button type="button" @click="soundModalOpen = false" class="text-neutral-400 hover:text-black dark:hover:text-white">✕</button>
@@ -583,7 +637,7 @@
                   :key="vibeKey"
                   type="button" 
                   @click="appendSoundVibe(vibeText)"
-                  class="text-xs font-semibold px-3 py-2 rounded-xl text-left bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white hover:border-black dark:hover:border-white transition-all shadow-sm">
+                  class="text-xs font-semibold px-3 py-2 rounded-xl text-left bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white hover:border-orange-400 dark:hover:border-white transition-all shadow-sm">
                   {{ vibeKey }}
                 </button>
               </div>
@@ -598,7 +652,7 @@
                   :key="vibeKey"
                   type="button" 
                   @click="appendSoundVibe(vibeText)"
-                  class="text-xs font-semibold px-3 py-2 rounded-xl text-left bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white hover:border-black dark:hover:border-white transition-all shadow-sm">
+                  class="text-xs font-semibold px-3 py-2 rounded-xl text-left bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white hover:border-orange-400 dark:hover:border-white transition-all shadow-sm">
                   {{ vibeKey }}
                 </button>
               </div>
@@ -611,7 +665,7 @@
               v-model="promptText" 
               rows="4" 
               placeholder="Describe your video & audio, or ask ChatGPT to give you and paste here..."
-              class="w-full rounded-2xl p-4 bg-neutral-50 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all resize-y placeholder:text-neutral-400">
+              class="w-full rounded-2xl p-4 bg-white/90 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 dark:focus:ring-white dark:focus:border-white transition-all resize-y placeholder:text-neutral-400 shadow-sm">
             </textarea>
           </div>
 
@@ -619,7 +673,7 @@
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-2">
               <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">Duration:</label>
-              <select v-model="durationSec" class="rounded-xl px-3 py-1.5 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer">
+              <select v-model="durationSec" class="rounded-xl px-3 py-1.5 bg-white/90 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-black dark:text-white focus:outline-none focus:border-orange-500 cursor-pointer shadow-sm">
                 <option value="3">3 Seconds</option>
                 <option value="5">5 Seconds</option>
                 <option value="8">8 Seconds</option>
@@ -632,21 +686,21 @@
               v-if="promptText.trim()" 
               type="button" 
               @click="promptText = ''" 
-              class="text-xs font-medium text-neutral-400 hover:text-black dark:hover:text-white">
+              class="text-xs font-medium text-neutral-400 hover:text-orange-600 dark:hover:text-white cursor-pointer">
               Clear Text
             </button>
           </div>
 
-          <!-- Hero Black & White Generate Button (Renamed to simply 'Start' with no icon) -->
+          <!-- Hero Orange Start Button -->
           <button 
             type="button" 
             @click="startGeneration" 
             :disabled="!selectedImageFile || isGenerating"
             :class="[
-              'w-full py-4 rounded-2xl font-display font-extrabold text-base sm:text-lg flex items-center justify-center transition-all duration-200',
+              'w-full py-4 rounded-2xl font-display font-extrabold text-base sm:text-lg flex items-center justify-center transition-all duration-200 cursor-pointer',
               (!selectedImageFile || isGenerating) 
-                ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
-                : 'bg-black text-white dark:bg-white dark:text-black shadow-btn-black dark:shadow-btn-white hover:opacity-90 active:scale-[0.99]'
+                ? 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 cursor-not-allowed shadow-none' 
+                : 'bg-orange-500 hover:bg-orange-600 text-white dark:bg-white dark:text-black dark:hover:bg-neutral-100 shadow-[0_6px_22px_-2px_rgba(249,115,22,0.45)] dark:shadow-btn-white active:scale-[0.99]'
             ]">
             <span>{{ isGenerating ? 'Generating Video & Audio...' : 'Start' }}</span>
           </button>
@@ -655,13 +709,13 @@
       </section>
 
       <!-- Text to Video Studio (Dedicated Mode: Big Prompt, Aspect Ratio, Duration, Start) -->
-      <section v-else-if="currentStudioMode === 't2v'" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark space-y-6">
+      <section v-else-if="currentStudioMode === 't2v'" class="rounded-3xl p-6 sm:p-8 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border border-orange-200/50 dark:border-neutral-800 shadow-[0_4px_25px_-2px_rgba(249,115,22,0.06),0_2px_8px_rgba(0,0,0,0.02)] dark:shadow-card-dark space-y-6">
         
         <!-- Step 1: Prompt -->
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">1</span>
+              <span class="w-7 h-7 rounded-xl bg-orange-500 text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm shadow-orange-500/25">1</span>
               <div>
                 <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Prompt</h2>
                 <p class="text-xs text-neutral-500 dark:text-neutral-400">Describe the video & audio</p>
@@ -671,7 +725,7 @@
               v-if="t2vPromptText.trim()" 
               type="button" 
               @click="t2vPromptText = ''" 
-              class="text-xs font-medium text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer">
+              class="text-xs font-medium text-neutral-400 hover:text-orange-600 dark:hover:text-white cursor-pointer">
               Clear Text
             </button>
           </div>
@@ -681,7 +735,7 @@
               v-model="t2vPromptText" 
               rows="6" 
               placeholder="Describe your video & audio, or ask ChatGPT to give you and paste here..."
-              class="w-full rounded-2xl p-4 sm:p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all resize-y placeholder:text-neutral-400 font-sans leading-relaxed">
+              class="w-full rounded-2xl p-4 sm:p-5 bg-white/90 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 dark:focus:ring-white dark:focus:border-white transition-all resize-y placeholder:text-neutral-400 font-sans leading-relaxed shadow-sm">
             </textarea>
           </div>
         </div>
@@ -689,7 +743,7 @@
         <!-- Step 2: Aspect Ratio -->
         <div class="pt-2 border-t border-neutral-200 dark:border-neutral-800">
           <div class="flex items-center gap-3 mb-3">
-            <span class="w-7 h-7 rounded-lg bg-black text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm">2</span>
+            <span class="w-7 h-7 rounded-xl bg-orange-500 text-white dark:bg-white dark:text-black font-display font-bold text-sm flex items-center justify-center shadow-sm shadow-orange-500/25">2</span>
             <div>
               <h2 class="font-display font-bold text-base text-black dark:text-white leading-tight">Aspect Ratio</h2>
             </div>
@@ -703,15 +757,15 @@
               :class="[
                 'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
                 t2vAspectRatio === '16:9' 
-                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
-                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+                  ? 'border-neutral-400 dark:border-neutral-600 bg-neutral-100/80 dark:bg-neutral-800/60 ring-2 ring-neutral-300 dark:ring-neutral-700 font-bold shadow-sm' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 hover:border-neutral-300 dark:hover:border-neutral-700'
               ]">
-              <div class="w-8 h-5 border-2 rounded-md" :class="t2vAspectRatio === '16:9' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-8 h-5 border-2 rounded-md transition-colors" :class="t2vAspectRatio === '16:9' ? 'border-orange-500 bg-orange-500 shadow-sm shadow-orange-500/25' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">16:9 Landscape</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">1344 × 768</span>
               </div>
-              <span v-if="t2vAspectRatio === '16:9'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="t2vAspectRatio === '16:9'" class="absolute top-1.5 right-2 text-orange-500 dark:text-orange-400 text-xs font-bold">✓</span>
             </button>
 
             <!-- 9:16 Vertical Card -->
@@ -721,15 +775,15 @@
               :class="[
                 'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
                 t2vAspectRatio === '9:16' 
-                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
-                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+                  ? 'border-neutral-400 dark:border-neutral-600 bg-neutral-100/80 dark:bg-neutral-800/60 ring-2 ring-neutral-300 dark:ring-neutral-700 font-bold shadow-sm' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 hover:border-neutral-300 dark:hover:border-neutral-700'
               ]">
-              <div class="w-5 h-8 border-2 rounded-md" :class="t2vAspectRatio === '9:16' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-5 h-8 border-2 rounded-md transition-colors" :class="t2vAspectRatio === '9:16' ? 'border-orange-500 bg-orange-500 shadow-sm shadow-orange-500/25' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">9:16 Vertical</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">768 × 1344</span>
               </div>
-              <span v-if="t2vAspectRatio === '9:16'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="t2vAspectRatio === '9:16'" class="absolute top-1.5 right-2 text-orange-500 dark:text-orange-400 text-xs font-bold">✓</span>
             </button>
 
             <!-- 1:1 Square Card -->
@@ -739,15 +793,15 @@
               :class="[
                 'p-3.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 transition-all duration-200 relative cursor-pointer',
                 t2vAspectRatio === '1:1' 
-                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/10 ring-2 ring-black dark:ring-white font-bold' 
-                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 hover:border-neutral-400'
+                  ? 'border-neutral-400 dark:border-neutral-600 bg-neutral-100/80 dark:bg-neutral-800/60 ring-2 ring-neutral-300 dark:ring-neutral-700 font-bold shadow-sm' 
+                  : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 hover:border-neutral-300 dark:hover:border-neutral-700'
               ]">
-              <div class="w-6 h-6 border-2 rounded-md" :class="t2vAspectRatio === '1:1' ? 'border-black dark:border-white bg-black dark:bg-white' : 'border-neutral-400 dark:border-neutral-600'"></div>
+              <div class="w-6 h-6 border-2 rounded-md transition-colors" :class="t2vAspectRatio === '1:1' ? 'border-orange-500 bg-orange-500 shadow-sm shadow-orange-500/25' : 'border-neutral-400 dark:border-neutral-600'"></div>
               <div>
                 <strong class="block text-xs text-black dark:text-white">1:1 Square</strong>
                 <span class="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">960 × 960</span>
               </div>
-              <span v-if="t2vAspectRatio === '1:1'" class="absolute top-1.5 right-2 text-black dark:text-white text-xs font-bold">✓</span>
+              <span v-if="t2vAspectRatio === '1:1'" class="absolute top-1.5 right-2 text-orange-500 dark:text-orange-400 text-xs font-bold">✓</span>
             </button>
           </div>
         </div>
@@ -756,7 +810,7 @@
         <div class="flex items-center justify-between gap-4 pt-2 border-t border-neutral-200 dark:border-neutral-800">
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">Duration:</label>
-            <select v-model="t2vDurationSec" class="rounded-xl px-3 py-1.5 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-black dark:text-white focus:outline-none cursor-pointer">
+            <select v-model="t2vDurationSec" class="rounded-xl px-3 py-1.5 bg-white/90 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-black dark:text-white focus:outline-none focus:border-orange-500 cursor-pointer shadow-sm">
               <option value="3">3 Seconds</option>
               <option value="5">5 Seconds</option>
               <option value="8">8 Seconds</option>
@@ -769,7 +823,7 @@
           </span>
         </div>
 
-        <!-- Start Button (Renamed to simple 'Start' with no icon) -->
+        <!-- Start Button -->
         <button 
           type="button" 
           @click="startT2VGeneration" 
@@ -777,19 +831,19 @@
           :class="[
             'w-full py-4 rounded-2xl font-display font-extrabold text-base sm:text-lg flex items-center justify-center transition-all duration-200 cursor-pointer',
             (!t2vPromptText.trim() || isGenerating) 
-              ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
-              : 'bg-black text-white dark:bg-white dark:text-black shadow-btn-black dark:shadow-btn-white hover:opacity-90 active:scale-[0.99]'
+              ? 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 cursor-not-allowed shadow-none' 
+              : 'bg-orange-500 hover:bg-orange-600 text-white dark:bg-white dark:text-black dark:hover:bg-neutral-100 shadow-[0_6px_22px_-2px_rgba(249,115,22,0.45)] dark:shadow-btn-white active:scale-[0.99]'
           ]">
           <span>{{ isGenerating ? 'Generating Video & Audio...' : 'Start' }}</span>
         </button>
       </section>
 
       <!-- Recent Activity (All Generations with Play, Download, Trash Delete & Clear All Button) -->
-      <section v-if="historyList.length > 0" class="rounded-3xl p-6 sm:p-7 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-card-light dark:shadow-card-dark transition-all">
+      <section v-if="historyList.length > 0" class="rounded-3xl p-6 sm:p-7 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border border-orange-200/50 dark:border-neutral-800 shadow-[0_4px_25px_-2px_rgba(249,115,22,0.06),0_2px_8px_rgba(0,0,0,0.02)] dark:shadow-card-dark transition-all">
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-200 dark:border-neutral-800">
           <div class="flex items-center gap-2.5">
             <h3 class="font-display font-bold text-base text-black dark:text-white">Recent Activity</h3>
-            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-orange-50 dark:bg-neutral-900 border border-orange-200 dark:border-neutral-800 text-orange-700 dark:text-orange-300">
               {{ historyList.length }}
             </span>
           </div>
@@ -832,8 +886,14 @@
                 <div class="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono flex items-center gap-2 mt-0.5">
                   <span>{{ item.size_mb }} MB</span>
                   <span>•</span>
-                  <span>{{ item.date }}</span>
-                  <span v-if="item.prompt_id" class="text-[9px] px-1 py-0.2 rounded bg-neutral-200/60 dark:bg-neutral-800/60 text-neutral-500" title="ComfyUI Prompt ID">
+                  <span>{{ formatTime12h(item) }}</span>
+                  <span v-if="item.generation_time_str || item.generation_time" 
+                        class="text-[9px] px-1.5 py-0.5 rounded-full bg-orange-500/10 dark:bg-orange-400/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 font-bold flex items-center gap-1 shadow-xs" 
+                        :title="'Total Generation Time: ' + (item.generation_time ? item.generation_time + 's' : item.generation_time_str)">
+                    <span>⚡</span>
+                    <span>{{ item.generation_time_str || (item.generation_time + 's') }}</span>
+                  </span>
+                  <span v-else-if="item.prompt_id" class="text-[9px] px-1 py-0.2 rounded bg-neutral-200/60 dark:bg-neutral-800/60 text-neutral-500">
                     ComfyUI
                   </span>
                 </div>
@@ -894,11 +954,11 @@
         <div class="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-800">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-700 p-0.5 flex items-center justify-center shadow-sm">
-              <img src="/favicon.svg" alt="VideoGen Icon" class="w-full h-full object-contain">
+              <img src="/favicon.svg?v=4" alt="VidGen Icon" class="w-full h-full object-contain">
             </div>
             <div>
-              <h3 class="font-display font-extrabold text-base text-black dark:text-white leading-tight">Share VideoGen Studio</h3>
-              <p class="text-xs text-neutral-500 dark:text-neutral-400">MiniMax H3 Native Audio & Video</p>
+              <h3 class="font-display font-extrabold text-base text-black dark:text-white leading-tight">Share Vid<span class="text-orange-500">Gen</span></h3>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">MiniMax H3 Engine</p>
             </div>
           </div>
           <button 
@@ -912,8 +972,8 @@
         <!-- Social Share Hero Card Preview (Hidden on Mobile as requested) -->
         <div class="hidden sm:block relative rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-md group">
           <img 
-            :src="themeChoice === 'light' ? '/og-image-light.png' : '/og-image.png'" 
-            :alt="themeChoice === 'light' ? 'VideoGen Studio Light Hero Card' : 'VideoGen Studio Dark Hero Card'" 
+            :src="themeChoice === 'light' ? '/og-image-light.png?v=4' : '/og-image.png?v=4'" 
+            :alt="themeChoice === 'light' ? 'VidGen Light Hero Card' : 'VidGen Dark Hero Card'" 
             class="w-full h-auto object-cover aspect-[1200/630]">
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
             <div>
@@ -939,7 +999,7 @@
               type="button" 
               @click="copyShareLink" 
               class="px-4 py-2 rounded-xl text-xs font-bold font-display transition-all flex items-center gap-1.5 shadow-sm"
-              :class="linkCopied ? 'bg-emerald-600 text-white' : 'bg-black text-white dark:bg-white dark:text-black hover:opacity-90'">
+              :class="linkCopied ? 'bg-emerald-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white dark:bg-white dark:text-black dark:hover:opacity-90'">
               <span v-if="linkCopied">✓ Copied!</span>
               <span v-else>Copy Link</span>
             </button>
@@ -1006,10 +1066,10 @@
             document.documentElement.classList.remove('dark');
           }
 
-          // Dynamically sync mobile status bar & homescreen PWA top area (White in Light, Black in Dark)
+          // Dynamically sync mobile status bar & homescreen PWA top area (Warm Cream in Light, Obsidian in Dark)
           const metaThemeColor = document.getElementById('metaThemeColor');
           if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', isDark ? '#000000' : '#ffffff');
+            metaThemeColor.setAttribute('content', isDark ? '#08080a' : '#faf7f2');
           }
           const metaStatusBar = document.getElementById('metaStatusBar');
           if (metaStatusBar) {
@@ -1048,7 +1108,14 @@
         const t2vDurationSec = ref('5');
 
         function switchMode(m) {
-          currentStudioMode.value = m;
+          if (currentStudioMode.value !== m) {
+            currentStudioMode.value = m;
+            // Completely fresh studio state: clear any old video preview so no previous video context lingers
+            if (!isGenerating.value) {
+              videoUrl.value = '';
+              downloadFilename.value = '';
+            }
+          }
           studioDrawerOpen.value = false;
         }
 
@@ -1364,7 +1431,7 @@
         function restoreDefaultFavicon() {
           const favLink = document.getElementById('appFavicon');
           if (favLink) {
-            favLink.href = themeChoice.value === 'light' ? '/favicon-light.svg' : '/favicon.svg';
+            favLink.href = (themeChoice.value === 'light' ? '/favicon-light.svg' : '/favicon.svg') + '?v=4';
           }
         }
 
@@ -1401,7 +1468,7 @@
           if (navigator.share) {
             try {
               await navigator.share({
-                title: 'VideoGen Studio - MiniMax H3',
+                title: 'VidGen - MiniMax H3',
                 text: 'Generate high-fidelity AI videos with synchronized native stereo audio on MiniMax H3!',
                 url: shareUrl.value,
               });
@@ -1417,7 +1484,7 @@
 
         function shareToPlatform(platform) {
           const url = encodeURIComponent(shareUrl.value);
-          const text = encodeURIComponent('Check out VideoGen Studio - Unlimited Image-to-Video generation with native stereo audio powered by MiniMax H3!');
+          const text = encodeURIComponent('Check out VidGen - Unlimited Image-to-Video generation with native stereo audio powered by MiniMax H3!');
           let target = '';
           if (platform === 'whatsapp') {
             target = `https://api.whatsapp.com/send?text=${text}%20${url}`;
@@ -1437,7 +1504,7 @@
           playTingSound();
 
           // 2. Alert user via browser tab title change
-          document.title = '🎬 Video Ready! - VideoGen Studio';
+          document.title = '🎬 Video Ready! - VidGen';
 
           // 3. Native browser & OS notification with high-res icon
           if ('Notification' in window && Notification.permission === 'granted') {
@@ -1475,7 +1542,7 @@
 
           // Live animated loading favicon and title
           updateFaviconProgress(5);
-          document.title = '(5%) ⏳ VideoGen Studio';
+          document.title = '(5%) ⏳ VidGen';
 
           // Scroll smoothly to top to show progress
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1499,7 +1566,7 @@
             alert('Generation error: ' + e.message);
             isGenerating.value = false;
             restoreDefaultFavicon();
-            document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
+            document.title = 'VidGen';
           }
         }
 
@@ -1520,7 +1587,7 @@
           jobStepDetail.value = `Formatting ${t2vAspectRatio.value} canvas & submitting prompt...`;
 
           updateFaviconProgress(5);
-          document.title = '(5%) ⏳ VideoGen Studio';
+          document.title = '(5%) ⏳ VidGen';
           window.scrollTo({ top: 0, behavior: 'smooth' });
 
           const fd = new FormData();
@@ -1541,7 +1608,7 @@
             alert('Generation error: ' + e.message);
             isGenerating.value = false;
             restoreDefaultFavicon();
-            document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
+            document.title = 'VidGen';
           }
         }
 
@@ -1557,14 +1624,14 @@
 
             // Live tab and favicon loading indicator
             updateFaviconProgress(jobProgress.value);
-            document.title = `(${jobProgress.value}%) ⏳ VideoGen Studio`;
+            document.title = `(${jobProgress.value}%) ⏳ VidGen`;
 
             if (job.status === 'completed') {
               clearInterval(pollTimer);
               restoreDefaultFavicon();
-              document.title = '🎬 Video Ready! - VideoGen Studio';
+              document.title = '🎬 Video Ready! - VidGen';
               isGenerating.value = false;
-              videoUrl.value = job.video_url;
+              videoUrl.value = job.video_url + '?t=' + Date.now();
               downloadFilename.value = job.filename || `MiniMaxH3_${activeAspectRatioDisplay.value.replace(':', '_')}.mp4`;
               fetchHistory();
               // Trigger notification & ting sound chime
@@ -1572,7 +1639,7 @@
             } else if (job.status === 'failed') {
               clearInterval(pollTimer);
               restoreDefaultFavicon();
-              document.title = '❌ Generation Failed - VideoGen Studio';
+              document.title = '❌ Generation Failed - VidGen';
               isGenerating.value = false;
               alert('Generation error: ' + (job.error || 'Unknown error'));
             }
@@ -1582,7 +1649,7 @@
         }
 
         function playHistoryVideo(item) {
-          videoUrl.value = item.url;
+          videoUrl.value = item.url + '?t=' + Date.now();
           downloadFilename.value = item.filename;
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1630,6 +1697,39 @@
           }
         }
 
+        function formatTime12h(item) {
+          if (!item) return '';
+          if (item.mtime) {
+            const d = new Date(item.mtime * 1000);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            let hours = d.getHours();
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            const strHours = String(hours).padStart(2, '0');
+            return `${y}-${m}-${day} ${strHours}:${minutes} ${ampm}`;
+          }
+          if (item.date) {
+            const parts = item.date.split(' ');
+            if (parts.length >= 2) {
+              const datePart = parts[0];
+              const timeParts = parts[1].split(':');
+              if (timeParts.length >= 2) {
+                let h = parseInt(timeParts[0], 10);
+                const min = timeParts[1];
+                const ampm = parts[2] || (h >= 12 ? 'PM' : 'AM');
+                h = h % 12 || 12;
+                const strH = String(h).padStart(2, '0');
+                return `${datePart} ${strH}:${min} ${ampm}`;
+              }
+            }
+            return item.date;
+          }
+          return '';
+        }
+
         onMounted(async () => {
           applyThemeClass();
           await fetchSystemStatus(); // Checks strictly once on page load (ZERO periodic background calls)
@@ -1641,7 +1741,7 @@
 
           window.addEventListener('focus', () => {
             if (!isGenerating.value) {
-              document.title = 'VideoGen Studio - MiniMax H3 (Native Video + Audio)';
+              document.title = 'VidGen';
               restoreDefaultFavicon();
             }
           });
@@ -1699,7 +1799,8 @@
           openShareModal,
           copyShareLink,
           nativeSystemShare,
-          shareToPlatform
+          shareToPlatform,
+          formatTime12h
         };
       }
     }).mount('#app');

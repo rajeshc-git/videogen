@@ -1,17 +1,17 @@
-# 🎬 VideoGen Studio
+# 🎬 VidGen
 
 <div align="center">
 
 ```
- __      ___     _            _____             
- \ \    / (_)   | |          / ____|            
-  \ \  / / _  __| | ___  ___| |  __  ___ _ __   
-   \ \/ / | |/ _` |/ _ \/ _ \ | |_ |/ _ \ '_ \  
-    \  /  | | (_| |  __/ (_) | |__| |  __/ | | |
-     \/   |_|\__,_|\___|\___/ \_____|\___|_| |_|
+__      ___     _  _____             
+\ \    / (_)   | |/ ____|            
+ \ \  / / _  __| | |  __  ___ _ __   
+  \ \/ / | |/ _` | | |_ |/ _ \ '_ \  
+   \  /  | | (_| | |__| |  __/ | | | 
+    \/   |_|\__,_|\_____|\___|_| |_| 
 ```
 
-### Next-Generation Image-to-Video Studio with Joint Native Audio & Video Diffusion
+### Next-Generation Image-to-Video & Text-to-Video Studio with Joint Native Audio & Video Diffusion
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -23,7 +23,7 @@
 
 <br/>
 
-**VideoGen Studio** is a high-performance local AI video creation suite that leverages the groundbreaking **MiniMax H3** multimodal diffusion architecture and **Qwen3-VL 32B** encoder to generate high-definition video with **synchronized, native stereo audio** directly from static images and natural prompts.
+**VidGen Studio** is a high-performance local AI video creation suite that leverages the groundbreaking **MiniMax H3** multimodal diffusion architecture and **Qwen3-VL 32B** encoder to generate high-definition video with **synchronized, native stereo audio** directly from static images or pure text prompts.
 
 [✨ Key Features](#-key-features) • [⚡ One-Click Runner](#-one-click-runner-windows) • [🛠️ Tech Stack](#️-technology-stack) • [📦 Model Setup](#-required-models) • [🚀 Manual Installation](#-manual-installation)
 
@@ -33,6 +33,8 @@
 
 ## 🌟 Key Features
 
+- **Dual Creation Modes: Image-to-Video & Text-to-Video**  
+  Effortlessly animate images or create complete cinematic scenes from scratch using pure text prompts with zero context contamination between modes.
 - **Joint Native Audio & Video Synthesis**  
   Unlike traditional pipelines that mute outputs or require disjointed post-dubbing, MiniMax H3 denoises video frames and stereo audio latents concurrently inside a single unified diffusion model.
 - **Multimodal Intelligence with Qwen3-VL 32B**  
@@ -41,16 +43,15 @@
   - 📱 **9:16 Vertical (768 × 1344)** — Optimized for Instagram Reels, YouTube Shorts, and TikTok.
   - 🖥️ **16:9 Cinematic (1344 × 768)** — Widescreen cinematic storytelling and landscapes.
   - 🔲 **1:1 Square (960 × 960)** — Social posts and avatars.
+  - 🖼️ **Original (Native Proportions)** — Dynamic aspect ratio preservation with zero stretching.
 - **Turbo 8-Step LoRA Acceleration**  
   Dramatically reduces inference time while maintaining sharp temporal consistency and rich audio fidelity.
 - **Live Real-Time WebSocket Telemetry**  
   Real-time node-by-node feedback (model loading, text encoding, latent denoising, VAE audio/video decoding) streamed directly to the browser UI.
-- **In-App Resumable Model Downloader**  
-  Integrated downloader that fetches high-capacity safetensors from Hugging Face with progress tracking and chunk resumption.
-- **Synthesized Audio Engine & Presets**  
-  Built-in cinematic audio synthesizer offering presets (*Cinematic Epic*, *Cyberpunk Pulse*, *Ambient Drift*, *Serene Nature*, *Lo-Fi Warmth*, *Action Trailer*).
+- **Automatic Uploads Cleanup**  
+  Temporary uploaded images are automatically deleted immediately after video generation to keep local storage clean.
 - **Persistent Gallery & Video Player**  
-  Browse, preview, and download previously generated videos with prompt metadata preserved.
+  Browse, preview, download, and manage previously generated videos with prompt metadata preserved.
 
 ---
 
@@ -59,7 +60,7 @@
 The repository includes a ready-to-use batch launcher for Windows:
 
 ```
-📁 VideoGen
+📁 VidGen
   └── 🚀 start_ui.bat  <-- DOUBLE CLICK TO START
 ```
 
@@ -67,7 +68,7 @@ The repository includes a ready-to-use batch launcher for Windows:
 
 1. Ensure **ComfyUI** is running on your machine (`http://127.0.0.1:8188`).
 2. Double-click **`start_ui.bat`** in the project folder.
-3. The launcher will automatically start the FastAPI server on port **`7860`**.
+3. The launcher will automatically check dependencies and start the FastAPI server on port **`7860`**.
 4. Open your web browser and navigate to:
    - **Local:** [http://localhost:7860](http://localhost:7860)
    - **LAN (Network):** `http://<your-local-ip>:7860`
@@ -93,7 +94,7 @@ The repository includes a ready-to-use batch launcher for Windows:
 
 ## 📦 Required Models
 
-VideoGen Studio connects to ComfyUI's model directories. You can download the models directly from the **Model Manager** tab inside the web UI, or manually download them to your ComfyUI models folder:
+VidGen Studio connects to ComfyUI's model directories. You can download the models directly from the **Model Manager** tab inside the web UI, or manually download them to your ComfyUI models folder:
 
 | Model File | Category | Target Folder | Approx. Size |
 | :--- | :--- | :--- | :--- |
@@ -150,7 +151,7 @@ Open **[http://localhost:7860](http://localhost:7860)** in your browser.
 ## 📁 Project Structure
 
 ```text
-VideoGen/
+VidGen/
 ├── .gitignore              # Ignores generated media, caches, and environment files
 ├── requirements.txt        # Python package requirements
 ├── start_ui.bat            # One-click Windows runner script
@@ -160,10 +161,10 @@ VideoGen/
 ├── audio_engine.py         # Stereo audio synthesizer & soundscape generator
 ├── static/                 # Web interface assets
 │   ├── index.html          # Responsive single-page application layout
-│   ├── app.css             # Glassmorphic dark-theme styling
-│   └── app.js              # State management & WebSocket controller
-├── uploads/                # Staging directory for uploaded images (ignored in git)
-└── outputs/                # Rendered videos and audio files (ignored in git)
+│   ├── favicon.svg         # Monochrome video camera/play logo
+│   └── og-image.png        # Dual-tone social share hero card
+├── uploads/                # Auto-cleaned directory for input images
+└── outputs/                # Rendered videos and audio files (user-managed)
 ```
 
 ---
@@ -173,9 +174,11 @@ VideoGen/
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/status` | Returns ComfyUI connectivity and model readiness status |
-| `POST` | `/api/generate` | Enqueues a new Image-to-Video generation job |
-| `GET` | `/api/progress/{job_id}` | Polls status, step message, and percentage for a job |
-| `GET` | `/api/history` | Retrieves list of all generated videos with prompts |
+| `POST` | `/api/generate` | Enqueues a new Image-to-Video or Text-to-Video generation job |
+| `GET` | `/api/progress/{job_id}` | Polls real-time step message, denoising node, and percentage |
+| `GET` | `/api/history` | Retrieves list of all generated videos with prompts and metadata |
+| `POST` | `/api/history/delete` | Deletes a video file and unlinks it from ComfyUI history |
+| `POST` | `/api/history/clear` | Purges all videos, resets queue, and clears temporary uploads |
 | `GET` | `/api/videos/{filename}` | Streams generated MP4 video |
 | `GET` | `/api/download/{filename}` | Downloads video as attachment |
 | `POST` | `/api/models/download` | Initiates asynchronous model download |
